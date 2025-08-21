@@ -1,4 +1,5 @@
-CROSS_COMPILE ?= arm-linux-gnueabihf-
+#CROSS_COMPILE ?= arm-linux-gnueabihf-
+CROSS_COMPILE ?= aarch64-linux-gnu-
 CC      = $(CROSS_COMPILE)gcc
 LD      = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
