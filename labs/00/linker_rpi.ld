@@ -9,7 +9,7 @@ MEMORY
 _estack = ORIGIN(RAM) + LENGTH(RAM);
 
 SECTIONS {
-    . = 0x40080000;
+    . = 0x8000;
 
     .text : {
         *(.text._start)
@@ -25,9 +25,7 @@ SECTIONS {
     }
 
     .bss : {
-		__bss_start = .;
         *(.bss*)
         *(COMMON)
-		__bss_end = .;
     }
 }
