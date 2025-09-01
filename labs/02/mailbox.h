@@ -20,7 +20,7 @@
 #define TAG_REQUEST_CODE    0x00000000
 #define END_TAG             0x00000000
 
-extern volatile unsigned int __attribute__((aligned(16))) mailbox[36];
+extern volatile unsigned int __attribute__((aligned(16))) mailbox[64];
 void mailbox_call(int ch);
 void get_board_revision();
 void get_vc_memory_addr();

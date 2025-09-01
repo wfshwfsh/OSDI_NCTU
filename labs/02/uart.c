@@ -3,21 +3,47 @@
 
 #if 0
 /* Uart0: PL011-UART */
-void uart1_init() {
-
+void uart0_init() {
+	
+	// 1. Configure the UART clock frequency by mailbox
+	
+	
+	// 2. Enable GPIO (almost same as mini UART).
+	
+	
+	// 3. Set IBRD and FBRD to configure baud rate.
+	
+	
+	// 4. Set LCRH to configure line control.
+	
+	
+	// 5. Set CR to enable UART.
     
+	
 }
 
-void uart_send(char c) {
+void uart0_send(char c) {
     while (*UART0_FR & (1 << 5)); // TXFF bit, transmit FIFO full
     *UART0_DR = c;
 }
 
-void uart_puts(const char* str) {
+void uart0_puts(const char* str) {
     while (*str) {
         if (*str == '\n') uart_send('\r'); // 加上 CRLF
         uart_send(*str++);
     }
+}
+
+char uart0_getc() {
+    char r;
+    /* wait until something is in the buffer */
+    do {
+        asm volatile("nop");
+    } while (!(*UART0_FR & (1<<4))); //RXFE, Receive FIFO empty
+    /* read it and return */
+    r = (char)(*UART0_DR);
+    /* convert carrige return to newline */
+    return r == '\r' ? '\n' : r;
 }
 #else
 /* Uart1: mini-UART */

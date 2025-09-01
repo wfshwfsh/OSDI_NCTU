@@ -1,7 +1,7 @@
 #include "mailbox.h"
 #include "util.h"
 
-volatile unsigned int __attribute__((aligned(16))) mailbox[36];
+volatile unsigned int __attribute__((aligned(16))) mailbox[64];
 
 void mailbox_w(int ch)
 {
