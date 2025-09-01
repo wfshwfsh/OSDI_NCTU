@@ -1,0 +1,112 @@
+#include "mailbox.h"
+#include "fb.h"
+#include "util.h"
+
+#define FB_BUFFER_SIZE  (FB_PHY_WIDTH*FB_PHY_HEIGHT)
+#define FB_PHY_WIDTH    1920
+#define FB_PHY_HEIGHT   1080
+#define FB_VIRT_WIDTH   1920
+#define FB_VIRT_HEIGHT  1080
+#define FB_OFFSET_X     0
+#define FB_OFFSET_Y     0
+#define FB_DEPTH        32
+
+#define PIXEL_ORDER_BGR 0x0
+#define PIXEL_ORDER_RGB 0x1
+#define FB_PIXEL_ORDER  (PIXEL_ORDER_BGR)
+
+static unsigned int *fb_base;
+static int fb_size=0;
+
+void fb_init()
+{
+    int idx=1;
+    
+    memset(&mailbox, 0, sizeof(mailbox));
+    
+    //mailbox[0] = 7 * 4; // buffer size in bytes
+    mailbox[idx++] = TAG_REQUEST_CODE;
+
+    /* ----- TAGS BEGIN ----- */
+    // 1. Allocate buffer
+    mailbox[idx++] = 0x00040001;
+    mailbox[idx++] = 4;
+    mailbox[idx++] = FB_BUFFER_SIZE;
+    mailbox[idx++] = 0;
+    mailbox[idx++] = 0;
+    
+
+    // 2. Physical Buffer Width/Height
+    mailbox[idx++] = 0x00048003;
+    mailbox[idx++] = 8;
+    mailbox[idx++] = FB_PHY_WIDTH;
+    mailbox[idx++] = FB_PHY_HEIGHT;
+    
+    // 3. Virtual Buffer Width/Height
+    mailbox[idx++] = 0x00048004;
+    mailbox[idx++] = 8;
+    mailbox[idx++] = FB_VIRT_WIDTH;
+    mailbox[idx++] = FB_VIRT_HEIGHT;
+    
+    // 4. Virtual Buffer Offset
+    mailbox[idx++] = 0x00048009;
+    mailbox[idx++] = 8;
+    mailbox[idx++] = FB_OFFSET_X;
+    mailbox[idx++] = FB_OFFSET_Y;
+    
+    // 5. Depth
+    mailbox[idx++] = 0x00048005;
+    mailbox[idx++] = 4;
+    mailbox[idx++] = FB_DEPTH;//BIT_PER_PIXEL;
+    
+    // 6. Pixel Order
+    mailbox[idx++] = 0x00048006;
+    mailbox[idx++] = 4;
+    mailbox[idx++] = FB_PIXEL_ORDER;
+    
+    // 7. Get pitch
+    mailbox[idx++] = 0x00040008;
+    mailbox[idx++] = 4;
+    mailbox[idx++] = 0;
+
+    mailbox[idx++] = END_TAG;
+    mailbox[0] = idx * 4; // buffer size in bytes
+    /* ----- TAGS END ----- */
+    
+    mailbox_call(MAILBOX_CH__ARM2VC);
+    print_s("length: ");
+    print_i(idx);
+    
+    print_s("\n Req result: ");
+    print_i(mailbox[1]);
+    
+    print_s("\n fb_base: ");
+    fb_base = mailbox[5];
+    print_i(mailbox[5]);
+    
+    print_s("\n fb_size: ");
+    fb_size = mailbox[6];
+    print_i(mailbox[6]);
+    
+    print_s("\n pitch: ");
+    print_i(mailbox[27]);
+    
+    print_s("\n");
+}
+
+void fb_loadSplashImage()
+{
+    int x,y;
+    int color=255;
+    
+    for(y=0;y<FB_PHY_HEIGHT;y++)
+    {
+        for(x=0;x<FB_PHY_WIDTH;x++)
+        {
+            *fb_base = color;
+            
+        }
+    }
+    
+    
+}

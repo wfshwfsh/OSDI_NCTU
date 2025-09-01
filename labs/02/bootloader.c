@@ -3,7 +3,7 @@
 #include "util.h"
 #include "uart.h"
 #include "mailbox.h"
-
+#include "fb.h"
 
 void read_cmd(char *cmd) {
     char now;
@@ -90,6 +90,8 @@ int main(void)
     print_s("\033[2J\033[1;1H");
     print_s("Bootloader running in QEMU GUI!\n");
 	
+    fb_init();
+    fb_loadSplashImage();
     
 	while(1) {
 		shell();
