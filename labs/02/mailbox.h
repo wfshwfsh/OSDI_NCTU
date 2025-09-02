@@ -1,4 +1,3 @@
-#include "io.h"
 
 #define MAILBOX_BASE    MMIO_BASE + 0xb880
 
@@ -24,3 +23,5 @@ extern volatile unsigned int __attribute__((aligned(16))) mailbox[64];
 void mailbox_call(int ch);
 void get_board_revision();
 void get_vc_memory_addr();
+void get_uart0_clk_state();
+int get_uart0_clk_rate();

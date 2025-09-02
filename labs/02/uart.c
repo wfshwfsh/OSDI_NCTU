@@ -1,24 +1,46 @@
-#include "io.h"
+#include "reg.h"
+#include "mailbox.h"
 
 
-#if 0
 /* Uart0: PL011-UART */
 void uart0_init() {
-	
+	int r,clk_uart0;
+    
 	// 1. Configure the UART clock frequency by mailbox
-	
+	get_uart0_clk_state();
+    clk_uart0 = get_uart0_clk_rate(); // 3MHz
 	
 	// 2. Enable GPIO (almost same as mini UART).
+    /* map UART0 to GPIO pins */
+    r = *GPFSEL1;
+    r &= ~((7 << 12) | (7 << 15));  // gpio14, gpio15
+    r |= (4 << 12) | (4 << 15);     // alt0
+    *GPFSEL1 = r;
+    *GPPUD = 0;  // enable pins 14 and 15
+    r = 150;
+    while (r--) {
+        asm volatile("nop");
+    }
+    *GPPUDCLK0 = (1 << 14) | (1 << 15);
+    r = 150;
+    while (r--) {
+        asm volatile("nop");
+    }
+    *GPPUDCLK0 = 0;  // flush GPIO setup
 	
-	
+    // Disable CR before setting all uart reg
+    *UART0_CR = 0;
+    
 	// 3. Set IBRD and FBRD to configure baud rate.
-	
+    // BaudDiv = 3MHz/(16 * 115200)
+	*UART0_IBRD = 1;
+    *UART0_FBRD = 62;
 	
 	// 4. Set LCRH to configure line control.
-	
+	*UART0_LCRH = (3<<5);
 	
 	// 5. Set CR to enable UART.
-    
+    *UART0_CR = ((1<<9) | (1<<8) | (1<<0));
 	
 }
 
@@ -29,8 +51,8 @@ void uart0_send(char c) {
 
 void uart0_puts(const char* str) {
     while (*str) {
-        if (*str == '\n') uart_send('\r'); // 加上 CRLF
-        uart_send(*str++);
+        if (*str == '\n') uart0_send('\r'); // 加上 CRLF
+        uart0_send(*str++);
     }
 }
 
@@ -45,7 +67,7 @@ char uart0_getc() {
     /* convert carrige return to newline */
     return r == '\r' ? '\n' : r;
 }
-#else
+
 /* Uart1: mini-UART */
 void uart1_init() {
 
@@ -121,7 +143,8 @@ char uart1_getc() {
     /* convert carrige return to newline */
     return r == '\r' ? '\n' : r;
 }
-#endif
+
+
 
 char read_c() { return uart1_getc(); }
 void print_s(char *ch) { uart1_puts(ch); }

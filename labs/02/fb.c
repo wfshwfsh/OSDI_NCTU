@@ -1,4 +1,5 @@
 #include "mailbox.h"
+#include "reg.h"
 #include "fb.h"
 #include "util.h"
 

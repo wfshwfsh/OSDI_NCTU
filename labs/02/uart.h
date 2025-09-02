@@ -1,3 +1,7 @@
+void uart0_init();
+void uart0_send(char c);
+void uart0_puts(const char* str);
+
 void uart1_init();
 void uart1_send(char c);
 void uart1_puts(const char* str);

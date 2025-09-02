@@ -20,7 +20,10 @@
 #define UART0_BASE 0x3F201000
 #define UART0_DR   ((volatile unsigned int*)(UART0_BASE + 0x00))
 #define UART0_FR   ((volatile unsigned int*)(UART0_BASE + 0x18))
-
+#define UART0_IBRD ((volatile unsigned int*)(UART0_BASE + 0x24))
+#define UART0_FBRD ((volatile unsigned int*)(UART0_BASE + 0x28))
+#define UART0_LCRH ((volatile unsigned int*)(UART0_BASE + 0x2c))
+#define UART0_CR   ((volatile unsigned int*)(UART0_BASE + 0x30))
 
 
 #define GPFSEL0 ((volatile unsigned int *)(MMIO_BASE + 0x00200000))

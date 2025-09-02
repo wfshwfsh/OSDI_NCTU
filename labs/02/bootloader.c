@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "io.h"
+#include "reg.h"
 #include "util.h"
 #include "uart.h"
 #include "mailbox.h"
@@ -90,6 +90,9 @@ int main(void)
     print_s("\033[2J\033[1;1H");
     print_s("Bootloader running in QEMU GUI!\n");
 	
+    uart0_init();
+    
+    
     fb_init();
     fb_loadSplashImage();
     
