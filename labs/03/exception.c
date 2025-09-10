@@ -1,0 +1,4 @@
+void exception_handler()
+{
+
+}
