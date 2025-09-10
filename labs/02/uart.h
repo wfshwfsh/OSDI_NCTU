@@ -9,5 +9,7 @@ char uart1_getc();
 char read_c();
 void print_s(char *ch);
 void print_c(char ch);
-void print_i(int x);
+void print_i(int value);
+void print_x(unsigned int value);
+void my_printf(const char *fmt, ...);
 

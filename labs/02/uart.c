@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include "reg.h"
 #include "mailbox.h"
 
@@ -144,16 +145,82 @@ char uart1_getc() {
     return r == '\r' ? '\n' : r;
 }
 
-
-
 char read_c() { return uart1_getc(); }
-void print_s(char *ch) { uart1_puts(ch); }
 void print_c(char ch) { uart1_send(ch); }
-void print_i(int x) {
-    if (x < 0) {
-        print_c('-');
-        x = -x;
+void print_s(const char *ch) { uart1_puts(ch); }
+//char read_c() { return uart0_getc(); }
+//void print_c(char ch) { uart0_send(ch); }
+//void print_s(char *ch) { uart0_puts(ch); }
+
+void print_i(int value) {
+    int neg=0, i=0;
+    char buf[32]={};
+    
+    if (value < 0) {
+        neg = 1;
+        value = -value;
     }
-    if (x >= 10) print_i(x / 10);
-    print_c(x % 10 + '0');
+    
+    while(value>0){
+        buf[i++] = value%10 + '0';
+        value = value/10;
+    }
+    
+    if(neg){
+        buf[i++] = '-';
+    }
+    
+    while(i>=0){
+        print_c(buf[i--]);
+    }
+}
+
+void print_x(unsigned int value)
+{
+    char HEX_STRING[]="0123456789abcdef";
+    int i=0;
+    char buf[32]={};
+    
+    while(value>0){
+        buf[i++] = HEX_STRING[(value & 0xf)];
+        //if((value & 0xf) < 10){
+        //    buf[i++] = (value & 0xf) + '0';
+        //}else{
+        //    buf[i++] = (value & 0xf) - 10 + 'a';
+        //}
+        
+        value = (value >> 4);
+    }
+    
+    while(i>=0){
+        print_c(buf[i--]);
+    }
+}
+
+void my_printf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    while (*fmt) {
+        if (*fmt == '%') {
+            fmt++;
+            switch (*fmt) {
+                case 's':
+                    print_s(va_arg(args, const char *));
+                break;
+                case 'd':
+                    print_i(va_arg(args, int));
+                break;
+                case 'x':
+                    print_x(va_arg(args, unsigned int));
+                break;
+            }
+            fmt++;
+        } else {
+            print_c(*fmt);
+            fmt++;
+        }
+    }
+    
+    va_end(args);
 }

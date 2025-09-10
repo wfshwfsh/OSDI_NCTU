@@ -39,8 +39,9 @@ void get_board_revision(){
   mailbox[6] = END_TAG;
   
   mailbox_call(MAILBOX_CH__ARM2VC);
-  print_i(mailbox[5]); // it should be 0xa020d3 for rpi3 b+
-  print_s("\n");
+  
+  // it should be 0xa020d3 for rpi3 b+
+  my_printf("board_revision: 0x%x\n", mailbox[5]);
 }
 
 void get_vc_memory_addr(){
@@ -59,13 +60,8 @@ void get_vc_memory_addr(){
   mailbox[7] = END_TAG;
   
   mailbox_call(MAILBOX_CH__ARM2VC);
-  print_s("base_addr: ");
-  print_i(mailbox[5]);
-  print_s("\n");
-  
-  print_s("size: ");
-  print_i(mailbox[6]);
-  print_s("\n");
+  my_printf("base_addr: 0x%x\n", mailbox[5]);
+  my_printf("size: 0x%x\n", mailbox[6]);
 }
 
 void get_uart0_clk_state(){
@@ -85,13 +81,8 @@ void get_uart0_clk_state(){
   mailbox[7] = END_TAG;
   
   mailbox_call(MAILBOX_CH__ARM2VC);
-  print_s("clk_id: ");
-  print_i(mailbox[5]);
-  print_s("\n");
-  
-  print_s("clk_state: ");
-  print_i(mailbox[6]);
-  print_s("\n");
+  my_printf("clk_id: %d\n", mailbox[5]);
+  my_printf("clk_state: %d\n", mailbox[6]);
 }
 
 int get_uart0_clk_rate(){
@@ -111,13 +102,8 @@ int get_uart0_clk_rate(){
   mailbox[7] = END_TAG;
   
   mailbox_call(MAILBOX_CH__ARM2VC);
-  print_s("clk_id: ");
-  print_i(mailbox[5]);
-  print_s("\n");
-  
-  print_s("clk_rate: ");
-  print_i(mailbox[6]);
-  print_s("\n");
+  my_printf("clk_id: %d\n", mailbox[5]);
+  my_printf("clk_rate: %d\n", mailbox[6]);
   
   return mailbox[6];
 }

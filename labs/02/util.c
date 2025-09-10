@@ -9,8 +9,6 @@ void memset(unsigned int *beg, unsigned int val, unsigned int len)
 
 int strcmp(const char *s1, const char *s2)
 {
-    int i;
-    
     while(*s1 || *s2)
     {
         if(*s1 == *s2){

@@ -2,6 +2,7 @@
 #include "reg.h"
 #include "fb.h"
 #include "util.h"
+#include "uart.h"
 
 #define FB_BUFFER_SIZE  (FB_PHY_WIDTH*FB_PHY_HEIGHT)
 #define FB_PHY_WIDTH    1920
@@ -17,7 +18,7 @@
 #define FB_PIXEL_ORDER  (PIXEL_ORDER_RGB)
 
 static unsigned int *fb_base;
-static int fb_size=0;
+static int fb_size=0, fb_pitch;
 
 void fb_init()
 {
@@ -82,24 +83,17 @@ void fb_init()
     /* ----- TAGS END ----- */
     
     mailbox_call(MAILBOX_CH__ARM2VC);
-    print_s("length: ");
-    print_i(idx);
+    my_printf("length: %d\n", idx);
+    my_printf("Req result: %d\n", mailbox[1]);
     
-    print_s("\n Req result: ");
-    print_i(mailbox[1]);
-    
-    print_s("\n fb_base: ");
     fb_base = mailbox[5];
-    print_i(mailbox[5]);
+    my_printf("fb_base: 0x%x\n", fb_base);
     
-    print_s("\n fb_size: ");
     fb_size = mailbox[6];
-    print_i(mailbox[6]);
+    my_printf("fb_size: %d\n", fb_size);
     
-    print_s("\n pitch: ");
-    print_i(mailbox[32]);
-    
-    print_s("\n");
+    fb_pitch = mailbox[32];
+    my_printf("pitch: %d\n", fb_pitch);
 }
 
 #define LEN_SQUARE_X 20
@@ -108,7 +102,7 @@ void fb_loadSplashImage()
 {
     int x,y;
     int color_w=0x00000000, color_b=0xffffffff;
-    int isWhite=1, isWhiteLast=isWhite;
+    int isWhite=1;
 	
     for(y=0;y<FB_PHY_HEIGHT;y++)
     {
