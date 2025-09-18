@@ -7,7 +7,8 @@ OBJCOPY = $(CROSS_COMPILE)objcopy
 CFLAGS  = -g3 -Og -fno-omit-frame-pointer -fno-inline -fno-pie -Wall -O2 -ffreestanding -nostdlib -nostartfiles
 LDFLAGS = -T linker_rpi.ld
 
-OBJS = exception.o except.o start.o util.o uart.o mailbox.o fb.o reset.o shell.o main.o 
+#OBJS = start.o util.o uart.o mailbox.o fb.o reset.o shell.o main.o
+OBJS = exceptions.o vector.o start.o util.o uart.o mailbox.o fb.o timer.o reset.o shell.o main.o 
 
 all: kernel.img
 

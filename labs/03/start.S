@@ -18,13 +18,13 @@ _start:
 	b 1b
 
 2:
-	// Set Exception Table
-	ldr x0, =exception_table
-	msr VBAR_EL2, x0
-	
 	// set stack before our code
     ldr     x0, =stack_top
     mov     sp, x0
+	
+	// Set Exception Table
+	ldr x0, =exception_table
+	msr VBAR_EL2, x0
 
 	// clear bss
 	ldr		x0, =__bss_start

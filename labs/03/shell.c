@@ -44,6 +44,7 @@ void shell()
             "hello     	: print Hello World!\n"
 			"hw    		: print HW info!\n"
             "timestamp 	: print system timestamp\n"
+			"exc 		: trap a exceoption\n"
             "reboot    	: reboot the device\r\n");
 	}else if(0 == strcmp(cmd, "hello")){
 		my_printf("Hello World!\n");
@@ -56,8 +57,12 @@ void shell()
         asm volatile("mrs %0, cntfrq_el0" : "=r"(tm_frq));
         tm_sec = tm_cnt/tm_frq;
         my_printf("[%d]\n", tm_sec);
-        }else if(0 == strcmp(cmd, "exc")){
-                call_svc();
+	}else if(0 == strcmp(cmd, "exc")){
+		call_svc();
+	}else if(0 == strcmp(cmd, "irq")){
+		my_printf("timer\n");
+		core_timer_enable();
+		local_timer_init();
 	}else if(0 == strcmp(cmd, "reboot")){
 		reset(10);
 	}else if(0 == strcmp(cmd, "clear")){
