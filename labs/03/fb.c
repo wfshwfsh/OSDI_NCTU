@@ -24,7 +24,7 @@ void fb_init()
 {
     int idx=1;
     
-    memset(&mailbox, 0, sizeof(mailbox));
+    //memset(&mailbox, 0, sizeof(mailbox));
     
     //mailbox[0] = 7 * 4; // buffer size in bytes
     mailbox[idx++] = TAG_REQUEST_CODE;
@@ -86,7 +86,7 @@ void fb_init()
     my_printf("length: %d\n", idx);
     my_printf("Req result: %d\n", mailbox[1]);
     
-    fb_base = mailbox[5];
+    fb_base = (void *)((unsigned long)mailbox[5]);
     my_printf("fb_base: 0x%x\n", fb_base);
     
     fb_size = mailbox[6];

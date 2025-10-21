@@ -5,8 +5,9 @@
 #define MAILBOX_STATUS  ((volatile unsigned int*)(MAILBOX_BASE + 0x18))
 #define MAILBOX_WRITE   ((volatile unsigned int*)(MAILBOX_BASE + 0x20))
 
-#define MAILBOX_EMPTY   0x40000000
-#define MAILBOX_FULL    0x80000000
+#define MAILBOX_RESPONSE 	0x80000000
+#define MAILBOX_EMPTY       0x40000000
+#define MAILBOX_FULL        0x80000000
 
 #define MAILBOX_CH__ARM2VC  8
 
@@ -20,7 +21,7 @@
 #define END_TAG             0x00000000
 
 extern volatile unsigned int __attribute__((aligned(16))) mailbox[64];
-void mailbox_call(int ch);
+int mailbox_call(int ch);
 void get_board_revision();
 void get_vc_memory_addr();
 void get_uart0_clk_state();

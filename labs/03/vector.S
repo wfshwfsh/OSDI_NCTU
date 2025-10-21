@@ -24,39 +24,38 @@ _SErr_handler:
 .align 11 // vector table should be aligned to 0x800
 .global exception_table
 exception_table:
-  
+  .align  7 // entry size is 0x80, .align will pad 0
   b _exc_handler // branch to a handler function.
-  .balign 0x80 // entry size is 0x80, .align will pad 0
+  .align  7
   b _exc_handler
-  .balign 0x80
+  .align  7
   b _exc_handler
-  .balign 0x80
+  .align  7
   b _exc_handler
-  .balign 0x80
-
-  b _SYNC_handler
-  .balign 0x80
-  b _IRQ_handler
-  .balign 0x80
-  b _FIQ_handler
-  .balign 0x80
-  b _SErr_handler
-  .balign 0x80
   
+  .align  7
   b _SYNC_handler
-  .balign 0x80
+  .align  7
   b _IRQ_handler
-  .balign 0x80
+  .align  7
   b _FIQ_handler
-  .balign 0x80
+  .align  7
   b _SErr_handler
-  .balign 0x80
   
+  .align  7
+  b _SYNC_handler
+  .align  7
+  b _IRQ_handler
+  .align  7
+  b _FIQ_handler
+  .align  7
+  b _SErr_handler
+  
+  .align  7
   b _exc_handler
-  .balign 0x80
+  .align  7
   b _exc_handler
-  .balign 0x80
+  .align  7
   b _exc_handler
-  .balign 0x80
+  .align  7
   b _exc_handler
-  .balign 0x80

@@ -1,4 +1,4 @@
-.section .text._start
+.section .text.boot
 .global _start
 #.align 4
 

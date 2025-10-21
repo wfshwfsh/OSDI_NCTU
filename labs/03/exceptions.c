@@ -1,5 +1,6 @@
-#include "uart.h"
 #include "reg.h"
+#include "uart.h"
+#include "timer.h"
 
 #define ENABLE_IRQS_1 ((volatile unsigned int *)(MMIO_BASE + 0x0000B210))
 #define AUX_IRQ (1 << 29)

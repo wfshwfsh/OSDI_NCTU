@@ -1,32 +1,36 @@
 #include "reg.h"
 #include "mailbox.h"
 #include "util.h"
+#include "uart.h"
 
 volatile unsigned int __attribute__((aligned(16))) mailbox[64];
 
-void mailbox_call(int ch)
+int mailbox_call(int ch)
 {
 	unsigned int req = (((unsigned int)((unsigned long)&mailbox) & ~0xF) | (ch & 0xF));
-	unsigned int resp;
 	
 	do {
 		asm volatile("nop");
 	}while(*MAILBOX_STATUS & MAILBOX_FULL);
 	*MAILBOX_WRITE = req;
 	
-	//do {
-		while (! *MAILBOX_STATUS & MAILBOX_EMPTY) ;
-		resp = *MAILBOX_READ;
-		
-	//}while( ((resp & 0xf) != 8 || (resp & ~0xf)) !=&mailbox );
-	
+	/* now wait for the response */
+    while (1) {
+        /* is there a response? */
+        do {
+            asm volatile("nop");
+        } while (*MAILBOX_STATUS & MAILBOX_EMPTY);
+        /* is it a response to our message? */
+        if (req == *MAILBOX_READ) /* is it a valid successful response? */
+            return mailbox[1] == MAILBOX_RESPONSE;
+    }
 }
 
 
 
 void get_board_revision(){
   
-  memset(&mailbox, 0, sizeof(mailbox));
+  //memset(&mailbox, 0, sizeof(mailbox));
   
   mailbox[0] = 7 * 4; // buffer size in bytes
   mailbox[1] = REQUEST_CODE;
@@ -46,7 +50,7 @@ void get_board_revision(){
 
 void get_vc_memory_addr(){
   
-  memset(&mailbox, 0, sizeof(mailbox));
+  //memset(&mailbox, 0, sizeof(mailbox));
   
   mailbox[0] = 8 * 4; // buffer size in bytes
   mailbox[1] = REQUEST_CODE;
@@ -66,7 +70,7 @@ void get_vc_memory_addr(){
 
 void get_uart0_clk_state(){
   
-  memset(&mailbox, 0, sizeof(mailbox));
+  //memset(&mailbox, 0, sizeof(mailbox));
   
   mailbox[0] = 8 * 4; // buffer size in bytes
   mailbox[1] = REQUEST_CODE;
@@ -87,7 +91,7 @@ void get_uart0_clk_state(){
 
 int get_uart0_clk_rate(){
   
-  memset(&mailbox, 0, sizeof(mailbox));
+  //memset(&mailbox, 0, sizeof(mailbox));
   
   mailbox[0] = 8 * 4; // buffer size in bytes
   mailbox[1] = REQUEST_CODE;

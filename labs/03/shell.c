@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "mailbox.h"
 #include "reset.h"
+#include "timer.h"
 
 void read_cmd(char *cmd) {
     char now;

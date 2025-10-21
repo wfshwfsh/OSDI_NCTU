@@ -4,7 +4,7 @@ CC      = $(CROSS_COMPILE)gcc
 LD      = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
-CFLAGS  = -g3 -Og -fno-omit-frame-pointer -fno-inline -fno-pie -Wall -O2 -ffreestanding -nostdlib -nostartfiles
+CFLAGS  = -g3 -Og -fno-omit-frame-pointer -fno-inline -fno-pie -Wall -O0 -ffreestanding -nostdlib -nostartfiles
 LDFLAGS = -T linker_rpi.ld
 
 #OBJS = start.o util.o uart.o mailbox.o fb.o reset.o shell.o main.o
@@ -25,4 +25,4 @@ kernel.img: kernel.elf
 	$(OBJCOPY) -O binary $< $@
 
 clean:
-	rm -f *.o *.elf *.img
+	rm -f *.o *.elf *.asmo *.img

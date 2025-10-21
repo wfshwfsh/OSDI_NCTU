@@ -5,11 +5,11 @@
 
 /* Uart0: PL011-UART */
 void uart0_init() {
-	int r,clk_uart0;
+	int r;
     
 	// 1. Configure the UART clock frequency by mailbox
 	get_uart0_clk_state();
-    clk_uart0 = get_uart0_clk_rate(); // 3MHz
+    get_uart0_clk_rate(); // 3MHz
 	
 	// 2. Enable GPIO (almost same as mini UART).
     /* map UART0 to GPIO pins */
