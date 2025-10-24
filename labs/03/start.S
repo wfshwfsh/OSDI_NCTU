@@ -17,10 +17,15 @@ _start:
 	wfe
 	b 1b
 
-2:
+2:  // cpu id == 0
 	// set stack before our code
     ldr     x0, =stack_top
     mov     sp, x0
+	
+    // Route interrupt to EL2
+    mov     x0, #(1 << 4)      // IMO
+    msr     hcr_el2, x0
+    mrs     x0, hcr_el2
 	
 	// Set Exception Table
 	ldr x0, =exception_table

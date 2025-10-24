@@ -19,7 +19,7 @@ int main(void)
     fb_init();
     fb_loadSplashImage();
 	
-	set_aux();
+	//set_aux();
 	
 	while(1) {
 		shell();

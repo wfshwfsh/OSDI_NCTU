@@ -3,7 +3,7 @@
 #define LOCAL_TIMER_CONTROL ((volatile unsigned int*)0x40000034)
 #define LOCAL_TIMER_IRQ_CLR ((volatile unsigned int*)0x40000038)
 
-#define CORE0_TIMER_IRQ_CTRL ((volatile unsigned int*)0x40000040)
+#define CORE0_TIMER_IRQ_CTRL 0x40000040
 #define EXPIRE_PERIOD 0xfffffff
 
 
@@ -11,33 +11,26 @@
 void core_timer_enable() {
     
     asm volatile(
-        ".global CORE0_TIMER_IRQ_CTRL;"
-        "CORE0_TIMER_IRQ_CTRL:;"
-        ".quad 0x40000040;"
-        ".equ EXPIRE_PERIOD, 0xffffffff;"
         "mov x0, 1;"
         "msr cntp_ctl_el0, x0;" // enable timer
-        "mov x0, #EXPIRE_PERIOD;"
+        "mov x0, #0xffffffff;"
         "msr cntp_tval_el0, x0;" // set expired time
         "mov x0, 2;"
-        "ldr x1, =CORE0_TIMER_IRQ_CTRL;"
+        "ldr x1, =0x40000040;"
 		"str x0, [x1];"
 		"msr daifclr, #2;"
     );
 }
 
 void core_timer_handler(){
-    unsigned long cval;
-    asm volatile("mrs %0, cntp_cval_el0" : "=r"(cval));
-    cval += EXPIRE_PERIOD;
-    
+	
     my_printf("core timer\n");
-    //asm volatile(
-        //".equ EXPIRE_PERIOD, 0xffffffff;"
-        //"mov x0, #EXPIRE_PERIOD;"
-        asm volatile("mov x0, %0;" : "=r"(cval));
-        asm volatile("msr cntp_tval_el0, x0;");
-    //);
+	
+    asm volatile("mov x0, 0x1");
+    asm volatile("mrs x1, CNTFRQ_EL0");
+    asm volatile("mul x0, x0, x1");
+    asm volatile("msr cntp_tval_el0, x0");
+	return;
 }
 
 void local_timer_init(){
@@ -45,7 +38,6 @@ void local_timer_init(){
   unsigned int reload = 25000000;
   *LOCAL_TIMER_CONTROL = flag | reload;
   
-  //asm volatile("msr daifclr, #0xf");
   asm volatile("msr daifclr, #2");
 }
 

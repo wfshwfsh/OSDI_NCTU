@@ -28,11 +28,6 @@ void read_cmd(char *cmd) {
     cmd[now_cur] = 0;
 }
 
-void call_svc()
-{
-	asm volatile("svc #1");
-}
-
 void shell()
 {
 	char cmd[256]={};
@@ -46,6 +41,7 @@ void shell()
 			"hw    		: print HW info!\n"
             "timestamp 	: print system timestamp\n"
 			"exc 		: trap a exceoption\n"
+			"irq 		: initial timer interrupts\n"
             "reboot    	: reboot the device\r\n");
 	}else if(0 == strcmp(cmd, "hello")){
 		my_printf("Hello World!\n");
@@ -59,7 +55,7 @@ void shell()
         tm_sec = tm_cnt/tm_frq;
         my_printf("[%d]\n", tm_sec);
 	}else if(0 == strcmp(cmd, "exc")){
-		call_svc();
+		asm volatile("svc #1");
 	}else if(0 == strcmp(cmd, "irq")){
 		my_printf("timer\n");
 		core_timer_enable();
