@@ -12,7 +12,16 @@ SECTIONS
         *(.bss .bss.*)
         *(COMMON)
         __bss_end = .;
-    }
+		. = ALIGN(16);
+	}
+	
+	.stack (NOLOAD) :{
+		. = ALIGN(16);
+		stack_bottom = .;
+		. += 0x4000;         /* 比原本 4096 再多一點 stack 空間 */
+		. = ALIGN(16);
+		stack_top = .;
+	}
     _end = .;
 
    /DISCARD/ : { *(.comment) *(.gnu*) *(.note*) *(.eh_frame*) }

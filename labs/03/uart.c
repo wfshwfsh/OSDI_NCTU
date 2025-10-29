@@ -1,4 +1,3 @@
-#include <stdarg.h>
 #include "reg.h"
 #include "mailbox.h"
 
@@ -152,6 +151,8 @@ void print_s(const char *ch) { uart1_puts(ch); }
 //void print_c(char ch) { uart0_send(ch); }
 //void print_s(char *ch) { uart0_puts(ch); }
 
+void print_OK() { uart1_puts("OK\n"); }
+
 void print_i(int value) {
     int neg=0, i=0;
     char buf[32]={};
@@ -198,21 +199,21 @@ void print_x(unsigned int value)
 }
 
 void my_printf(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
+    __builtin_va_list args;
+    __builtin_va_start(args, fmt);
 
     while (*fmt) {
         if (*fmt == '%') {
             fmt++;
             switch (*fmt) {
                 case 's':
-                    print_s(va_arg(args, const char *));
+                    print_s(__builtin_va_arg(args, const char *));
                 break;
                 case 'd':
-                    print_i(va_arg(args, int));
+                    print_i(__builtin_va_arg(args, int));
                 break;
                 case 'x':
-                    print_x(va_arg(args, unsigned int));
+                    print_x(__builtin_va_arg(args, unsigned int));
                 break;
             }
             fmt++;
@@ -222,5 +223,5 @@ void my_printf(const char *fmt, ...) {
         }
     }
     
-    va_end(args);
+    __builtin_va_end(args);
 }

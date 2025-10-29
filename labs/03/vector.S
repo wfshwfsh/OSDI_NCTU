@@ -43,8 +43,8 @@ _dummy_exc_handler:
 _SYNC_handler:
   kernel_entry
   mov x0, #0
-  mrs x1, esr_el2
-  mrs x2, elr_el2
+  mrs x1, esr_el1
+  mrs x2, elr_el1
   bl sync_handler
   kernel_exit
   eret
@@ -93,9 +93,9 @@ exception_table:
   
   /* Exception from lower EL and at least one lower EL is AArch64 */
   .align  7
-  b _dummy_exc_handler
+  b _SYNC_handler
   .align  7
-  b _dummy_exc_handler
+  b _IRQ_handler
   .align  7
   b _dummy_exc_handler
   .align  7

@@ -1,0 +1,41 @@
+
+kernel.elf:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+0000000000081f18 <my_printf_va>:
+   81f18:	a9b07bfd 	stp	x29, x30, [sp, #-256]!
+   81f1c:	910003fd 	mov	x29, sp
+   81f20:	f9000fe0 	str	x0, [sp, #24]
+   81f24:	f90067e1 	str	x1, [sp, #200]
+   81f28:	f9006be2 	str	x2, [sp, #208]
+   81f2c:	f9006fe3 	str	x3, [sp, #216]
+   81f30:	f90073e4 	str	x4, [sp, #224]
+   81f34:	f90077e5 	str	x5, [sp, #232]
+   81f38:	f9007be6 	str	x6, [sp, #240]
+   81f3c:	f9007fe7 	str	x7, [sp, #248]
+   81f40:	3d8013e0 	str	q0, [sp, #64]
+   81f44:	3d8017e1 	str	q1, [sp, #80]
+   81f48:	3d801be2 	str	q2, [sp, #96]
+   81f4c:	3d801fe3 	str	q3, [sp, #112]
+   81f50:	3d8023e4 	str	q4, [sp, #128]
+   81f54:	3d8027e5 	str	q5, [sp, #144]
+   81f58:	3d802be6 	str	q6, [sp, #160]
+   81f5c:	3d802fe7 	str	q7, [sp, #176]
+   81f60:	97ffffd7 	bl	81ebc <dump_sp_in_callee>
+   81f64:	910403e0 	add	x0, sp, #0x100
+   81f68:	f90013e0 	str	x0, [sp, #32]
+   81f6c:	910403e0 	add	x0, sp, #0x100
+   81f70:	f90017e0 	str	x0, [sp, #40]
+   81f74:	910303e0 	add	x0, sp, #0xc0
+   81f78:	f9001be0 	str	x0, [sp, #48]
+   81f7c:	128006e0 	mov	w0, #0xffffffc8            	// #-56
+   81f80:	b9003be0 	str	w0, [sp, #56]
+   81f84:	12800fe0 	mov	w0, #0xffffff80            	// #-128
+   81f88:	b9003fe0 	str	w0, [sp, #60]
+   81f8c:	f9400fe0 	ldr	x0, [sp, #24]
+   81f90:	97fffefe 	bl	81b88 <uart1_puts>
+   81f94:	d503201f 	nop
+   81f98:	a8d07bfd 	ldp	x29, x30, [sp], #256
+   81f9c:	d65f03c0 	ret

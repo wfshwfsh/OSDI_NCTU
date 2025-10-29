@@ -20,14 +20,19 @@ void sync_handler(unsigned long type, unsigned long esr, unsigned long elr)
 	iss = esr & ((1 << 24) -1);
 	ec = esr >> 26;
 	
-	if(0 == iss){
-		my_printf("ISS = 0 ???\n");
-	}else{
+	if(1 == iss){
 		my_printf("type: %x\n", type);
 		my_printf("Exception return address 0x%x\n", elr);
 		my_printf("(EC)Exception class 0x%x\n", ec);
 		my_printf("(ISS)Instruction specific syndrome 0x%x\n", iss);
-	}
+	}else if(2 == iss){
+        //asm volatile("ti:");
+        core_timer_enable();
+		local_timer_init();
+    }else{
+        my_printf("??? ISS = %d\n", iss);
+        ;
+    }
 }
 
 void irq_handler()

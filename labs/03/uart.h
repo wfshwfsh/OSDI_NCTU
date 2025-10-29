@@ -12,4 +12,5 @@ void print_c(char ch);
 void print_i(int value);
 void print_x(unsigned int value);
 void my_printf(const char *fmt, ...);
+void print_OK();
 

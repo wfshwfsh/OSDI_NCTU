@@ -55,11 +55,11 @@ void shell()
         tm_sec = tm_cnt/tm_frq;
         my_printf("[%d]\n", tm_sec);
 	}else if(0 == strcmp(cmd, "exc")){
+        //asm volatile("exc:");
 		asm volatile("svc #1");
 	}else if(0 == strcmp(cmd, "irq")){
 		my_printf("timer\n");
-		core_timer_enable();
-		local_timer_init();
+        asm volatile("svc #2");
 	}else if(0 == strcmp(cmd, "reboot")){
 		reset(10);
 	}else if(0 == strcmp(cmd, "clear")){
