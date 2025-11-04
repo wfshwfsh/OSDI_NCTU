@@ -28,6 +28,12 @@ el2_entry:
 	msr 	sp_el1, x2
     isb
 	
+    // enable CNTP for EL1
+    mrs     x0, cnthctl_el2
+    orr     x0, x0, #3
+    msr     cnthctl_el2, x0
+    msr     cntvoff_el2, xzr
+    
     // Route interrupt to EL2
     //mov     x0, #(1 << 4)      // IMO
     //msr     hcr_el2, x0
@@ -40,8 +46,7 @@ el2_entry:
     mrs     x0, hcr_el2
     
     // Enable FP/NEON for EL1/EL0
-    mov    x0, #0
-    orr    x0, x0, #(0b11 << 20)   // FPEN = 0b11 (EL0/EL1 可使用 FP/NEON)
+    mov    x0, #(0b11 << 20)   // FPEN = 0b11 (EL0/EL1 可使用 FP/NEON)
     msr    cpacr_el1, x0
     isb
 
@@ -57,9 +62,9 @@ el2_entry:
 
 	// Save pstate to spsr_el2 before jump to EL1
 	mov 	x1, #5				// M = 0b0101 -> EL1h
-	orr     x1, x1, #(1 << 7)	// bit[7]=1 Disable SError
-	orr     x1, x1, #(1 << 8)	// bit[8]=1 Disable FIQ
-	orr     x1, x1, #(1 << 9)	// bit[9]=1 Disable IRQ
+	orr     x1, x1, #(1 << 6)	// bit[6]=1 Disable SError
+	orr     x1, x1, #(1 << 7)	// bit[7]=1 Disable FIQ
+	orr     x1, x1, #(1 << 8)	// bit[8]=1 Disable IRQ
 	msr     spsr_el2, x1
 	
 	// address EL1 and jump to
@@ -71,10 +76,14 @@ el2_entry:
 el1_entry:
     //mrs     x3, CurrentEL  //For checking jump to EL1 or not (x3>>2) = 1
     
+    // Disable IRQ & FIQ
+    mrs     x0, daif
+    orr     x0, x0, #0xC0    // I=0x80, F=0x40
+    msr     daif, x0
+    
 	// Set EL0 stack poiont
 	ldr     x2, =stack_top
 	bic     x2, x2, #0xF     // 確保 16-byte 對齊
-    
 	msr 	sp_el0, x2
 	
     // set up exception handlers
@@ -83,7 +92,10 @@ el1_entry:
     isb
 	
 	// Save pstate to spsr_el1 before jump to EL0
-	mov     x1, #0
+	mov 	x1, #5				// M = 0b0101 -> EL1h
+	orr     x1, x1, #(1 << 6)	// bit[6]=1 Disable SError
+	orr     x1, x1, #(1 << 7)	// bit[7]=1 Disable FIQ
+	orr     x1, x1, #(1 << 8)	// bit[8]=1 Disable IRQ
 	msr     spsr_el1, x1
 	
 	// address EL1 and jump to
@@ -92,7 +104,6 @@ el1_entry:
 	
 	// enable uart1 interrupt
 	bl      set_aux
-	isb
 	eret
 
 el0_entry:

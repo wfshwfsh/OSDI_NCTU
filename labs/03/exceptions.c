@@ -20,13 +20,14 @@ void sync_handler(unsigned long type, unsigned long esr, unsigned long elr)
 	iss = esr & ((1 << 24) -1);
 	ec = esr >> 26;
 	
-	if(1 == iss){
+	if(ec == 0x15 && 1 == iss){
 		my_printf("type: %x\n", type);
 		my_printf("Exception return address 0x%x\n", elr);
 		my_printf("(EC)Exception class 0x%x\n", ec);
 		my_printf("(ISS)Instruction specific syndrome 0x%x\n", iss);
-	}else if(2 == iss){
+	}else if(ec == 0x15 && 2 == iss){
         //asm volatile("ti:");
+		my_printf("enable timer\n");
         core_timer_enable();
 		local_timer_init();
     }else{
@@ -37,11 +38,18 @@ void sync_handler(unsigned long type, unsigned long esr, unsigned long elr)
 
 void irq_handler()
 {
-	my_printf("irq_handler\n");
-	
-	//TBD - check irq source
-	core_timer_handler();
-	local_timer_handler();
+    unsigned int core0_irq_src = *CORE0_IRQ_SRC;
+	//my_printf("irq_handler = 0x%x\n", core0_irq_src);
+    
+    if(core0_irq_src & (1 << 1)){
+        //my_printf("Generic timer interrupt pending\n");
+        core_timer_handler();
+    }
+    
+    if(core0_irq_src & (1 << 11)){
+        //my_printf("Local timer interrupt pending\n");
+        local_timer_handler();
+    }
 }
 
 void fiq_handler()

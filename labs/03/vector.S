@@ -37,7 +37,9 @@
 .endm
 
 _dummy_exc_handler:
+  kernel_entry
   bl dummy_exception_handler
+  kernel_exit
   eret
 
 _SYNC_handler:
