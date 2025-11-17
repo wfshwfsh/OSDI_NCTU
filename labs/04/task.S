@@ -18,4 +18,6 @@ switch_to:
   ldr x9, [x1, 16 * 6]
   mov sp,  x9
   msr tpidr_el1, x1
-  ret
+  mov x2, lr
+  br  x2
+  //ret

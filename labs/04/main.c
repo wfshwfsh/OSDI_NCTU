@@ -35,8 +35,8 @@ int main(void)
     //run_shell();
     
     int tid_1, tid_2;
-    tid_1 = privilege_task_create(echo1);
-    tid_2 = privilege_task_create(echo2);
+    tid_1 = privilege_task_create(&echo1);
+    tid_2 = privilege_task_create(&echo2);
     
     //run_task1 => context_switch(cur, task2) => context_switch(cur, task1)
     context_switch(&task_pool[tid_1]);

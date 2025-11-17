@@ -35,14 +35,14 @@ int privilege_task_create(void(*func)())
     return new_id;
 }
 
-task_t* get_current(){
-    uint64_t adr_task;
-    asm volatile("mrs %0, tpidr_el1" : "=r"(adr_task));
-    return adr_task;
+static task_t* get_current(){
+    uint64_t addr_task;
+    asm volatile("mrs %0, tpidr_el1" : "=r"(addr_task));
+    return (task_t *)(addr_task);
 }
 
 void context_switch(struct task* next){
-    struct task* prev = get_current;
+    struct task* prev = get_current();
     switch_to(prev, next);
     //next->func();
 }

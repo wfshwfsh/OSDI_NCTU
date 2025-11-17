@@ -1,4 +1,5 @@
 #include "uart.h"
+#include "task.h"
 
 void echo1()
 {
@@ -9,7 +10,8 @@ void echo1()
         cnt--;
     }
     
-    //call context_switch(prev, next)
+    //req-1.3: call context_switch in task
+    context_switch(&task_pool[1]);
 }
 
 void echo2()
@@ -20,5 +22,6 @@ void echo2()
         cnt--;
     }
     
-    //call context_switch(prev, next)
+    //req-1.3: call context_switch in task
+    context_switch(&task_pool[0]);
 }

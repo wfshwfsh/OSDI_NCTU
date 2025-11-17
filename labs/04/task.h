@@ -18,8 +18,8 @@ typedef struct task{
     uint64_t lr;
     uint64_t sp;
     
-    eTask_state state;
     int id;
+    eTask_state state;
     //int type; //??? user or kernel task
     //int sp; //kernel stack pointer
     
@@ -31,3 +31,6 @@ extern task_t task_pool[XNOF_PROCESS];
 extern char kstack_pool[XNOF_PROCESS][4096];
     
 
+void task_init();
+int privilege_task_create(void(*func)());
+void context_switch(struct task* next);
