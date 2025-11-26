@@ -1,6 +1,18 @@
 #include "uart.h"
 #include "task.h"
 
+void Idle_task()
+{
+    my_printf(".\n");
+    while(isQueueEmpty()){
+        
+        int cnt = 100000000;
+        for(int i=0;i<cnt;i++) ;
+        
+        schedule();
+    }
+}
+
 void echo1()
 {
     int cnt = 100000000;
@@ -11,7 +23,8 @@ void echo1()
     }
     
     //req-1.3: call context_switch in task
-    context_switch(&task_pool[1]);
+    //context_switch(&task_pool[1]);
+    schedule();
 }
 
 void echo2()
@@ -23,5 +36,6 @@ void echo2()
     }
     
     //req-1.3: call context_switch in task
-    context_switch(&task_pool[0]);
+    //context_switch(&task_pool[0]);
+    schedule();
 }

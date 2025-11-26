@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #define XNOF_PROCESS 64
+#define XNOF_TASK_RUNQUEUE 32
 
 typedef enum{
     eTASK_ST_READY=0,
@@ -27,6 +28,22 @@ typedef struct task{
     
 }task_t;
 
+typedef struct queueElement{
+	
+	task_t *task;
+	struct queueElement *next;
+	
+}queueElement_t;
+
+
+typedef struct runQueue{
+	
+	queueElement_t *head;
+	queueElement_t *tail;
+    int count;
+	
+}runQueue_t;
+
 extern task_t task_pool[XNOF_PROCESS];
 extern char kstack_pool[XNOF_PROCESS][4096];
     
@@ -34,3 +51,4 @@ extern char kstack_pool[XNOF_PROCESS][4096];
 void task_init();
 int privilege_task_create(void(*func)());
 void context_switch(struct task* next);
+void schedule();
