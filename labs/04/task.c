@@ -3,7 +3,8 @@
 #include "task.h"
 #include "test.h"
 
-static int pid=0;
+int pid=0;
+bool flag_reschedule=false;
 task_t task_pool[XNOF_PROCESS];
 queueElement_t taskElementPool[XNOF_PROCESS];
 char kstack_pool[XNOF_PROCESS][4096];
@@ -21,6 +22,9 @@ void taskQueue_init()
 	runq.head = NULL;
 	runq.tail = NULL;
     runq.count = 0;
+    
+    privilege_task_create(&Idle_task, eTASK_PRI_IDLE);
+    runq.idle = &taskElementPool[IDLE_TASK_ID];
 }
 
 bool isQueueEmpty(runQueue_t *pRunq)
@@ -61,20 +65,11 @@ bool taskQueue_push(runQueue_t *pRunq, queueElement_t *pTaskElement)
 
 queueElement_t* taskQueue_pop(runQueue_t *pRunq)
 {
-    task_t *task = NULL;
 	queueElement_t *pTaskElement = NULL;
     
     if(isQueueEmpty(pRunq)){
-        //return NULL;
-        
-        /* Temprary for Re-create Idle task */
-        privilege_task_create(&Idle_task);
-        pTaskElement = pRunq->tail;
-        pRunq->tail = pRunq->tail->next;
-        pRunq->count--;
-        return pTaskElement;
+        return pRunq->idle;
 	}else{
-        //task = pRunq->tail->task;
         pTaskElement = pRunq->tail;
         pRunq->tail = pRunq->tail->next;
         pRunq->count--;
@@ -94,7 +89,7 @@ void task_init()
     taskQueue_init();
 }
 
-int privilege_task_create(void(*func)())
+int privilege_task_create(void(*func)(), int priority)
 {
     task_t *pTask=NULL;
     // allocate task struct and kernel stack
@@ -109,14 +104,18 @@ int privilege_task_create(void(*func)())
     pTask->func = func;
     
     pTask->state = eTASK_ST_READY;
+    pTask->priority = priority;
+    pTask->tick = 0;
     
     taskElementPool[new_id].task = pTask;
-    taskQueue_push(&runq, &taskElementPool[new_id]);
+    
+    if(IDLE_TASK_ID != new_id)
+        taskQueue_push(&runq, &taskElementPool[new_id]);
     
     return new_id;
 }
 
-static task_t* get_current(){
+task_t* get_current(){
     uint64_t addr_task;
     asm volatile("mrs %0, tpidr_el1" : "=r"(addr_task));
     return (task_t *)(addr_task);
@@ -132,8 +131,8 @@ void schedule(){
     
     // 1. Pick Next Task
     queueElement_t* next = taskQueue_pop(&runq);
+    next->task->tick = next->task->priority;
     
     // 2. Switch 
     context_switch(next->task);
-    
 }

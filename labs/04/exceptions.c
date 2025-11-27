@@ -32,7 +32,6 @@ void sync_handler(unsigned long type, unsigned long esr, unsigned long elr)
 		local_timer_init();
     }else{
         my_printf("??? ISS = %d\n", iss);
-        ;
     }
 }
 

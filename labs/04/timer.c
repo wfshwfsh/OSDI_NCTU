@@ -1,4 +1,5 @@
 #include "uart.h"
+#include "task.h"
 
 #define LOCAL_TIMER_CONTROL ((volatile unsigned int*)0x40000034)
 #define LOCAL_TIMER_IRQ_CLR ((volatile unsigned int*)0x40000038)
@@ -30,13 +31,20 @@ void core_timer_enable() {
 
 void core_timer_handler(){
 	
+    task_t* curTask = get_current();
     core_timer_cnt++;
     my_printf("core timer isr - %d\n", core_timer_cnt);
 	
+    // Refresh timer
     asm volatile("mov x0, 0x1");
     asm volatile("mrs x1, CNTFRQ_EL0");
     asm volatile("mul x0, x0, x1");
     asm volatile("msr cntp_tval_el0, x0");
+    
+    // Check current task tick
+    if(0 == --curTask->tick)
+        flag_reschedule=true;
+    
 	return;
 }
 

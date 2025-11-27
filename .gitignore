@@ -1,3 +1,4 @@
+*.asmo
 *.o
 *.elf
 *.img
