@@ -157,15 +157,20 @@ void print_i(int value) {
     int neg=0, i=0;
     char buf[32]={};
     
+	// 處理 INT_MIN 溢位保護與負數處理
+    unsigned int uval;
     if (value < 0) {
         neg = 1;
-        value = -value;
+        uval = (unsigned int)-(value + 1) + 1; // 避免 -INT_MIN 溢位
+    } else {
+        uval = (unsigned int)value;
     }
     
-    while(value>0){
-        buf[i++] = value%10 + '0';
-        value = value/10;
-    }
+    // 改用 do-while：即便 uval 為 0 也一定會跑一次存入 '0'
+    do {
+        buf[i++] = (uval % 10) + '0';
+        uval /= 10;
+    } while (uval > 0);
     
     if(neg){
         buf[i++] = '-';

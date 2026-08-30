@@ -6,10 +6,11 @@ void Idle_task()
     int cnt = 10000000;
     my_printf(".\n");
     while(1){
-        my_printf("A\n");
-        for(int i=0;i<cnt;i++) ;
-        
-        schedule();
+        my_printf("Idle...\n");
+       // 確保 DAIF 的 IRQ bit 清除 (啟用 IRQ)
+        asm volatile("msr daifclr, #2");
+        asm volatile("wfi"); // 等待 Interrupt 喚醒
+		for(int i=0;i<cnt;i++) ;
     }
 }
 

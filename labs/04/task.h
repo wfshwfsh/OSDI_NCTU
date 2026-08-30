@@ -5,18 +5,23 @@
 #define XNOF_TASK_RUNQUEUE 32
 #define IDLE_TASK_ID 0
 
+
+#define TASK_WAIT_THRESHOLD 4
+
 typedef enum{
     eTASK_ST_READY=0,
-    eTASK_ST_RUNNING=eTASK_ST_READY,
+    eTASK_ST_RUNNING,
     eTASK_ST_SLEEP, //interruptible, or uninterruptible
     eTASK_ST_ZOMBIE,
     eTASK_ST_DEAD,
     
 }eTask_state;
 
+
 typedef enum{
-    eTASK_PRI_1=1,
-    eTASK_PRI_IDLE=eTASK_PRI_1,
+	eTASK_PRI_0=0,
+	eTASK_PRI_IDLE=eTASK_PRI_0,
+    eTASK_PRI_1,
     eTASK_PRI_2,
     eTASK_PRI_3,
     eTASK_PRI_4,
@@ -25,8 +30,11 @@ typedef enum{
     eTASK_PRI_DEFAULT=eTASK_PRI_6,
     eTASK_PRI_7,
     eTASK_PRI_8,
-    eTASK_PRI_9,
-};
+    eTASK_PRI_9
+}eTASK_PRI;
+#define MIN_TASK_PRIORITY   eTASK_PRI_1
+#define MAX_TASK_PRIORITY   eTASK_PRI_8
+
 
 typedef struct task{
     // save caller register x19~x28, fp, lr, sp
@@ -37,8 +45,10 @@ typedef struct task{
     
     int id;
     eTask_state state;
-    int priority;
-    int tick;
+    int base_priority;
+	int dynamic_priority;
+    int ticks;
+	int wait_ticks;
     
     //int type; //??? user or kernel task
     //int sp; //kernel stack pointer
@@ -69,7 +79,7 @@ extern int pid;
 extern bool flag_reschedule;
 extern task_t task_pool[XNOF_PROCESS];
 extern queueElement_t taskElementPool[XNOF_PROCESS];
-extern char kstack_pool[XNOF_PROCESS][4096];
+extern uint64_t kstack_pool[XNOF_PROCESS][4096];
 extern runQueue_t runq;
 
 

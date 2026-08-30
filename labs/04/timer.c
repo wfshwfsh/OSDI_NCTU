@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <stdbool.h>
 #include "uart.h"
 #include "task.h"
 
@@ -41,9 +43,35 @@ void core_timer_handler(){
     asm volatile("mul x0, x0, x1");
     asm volatile("msr cntp_tval_el0, x0");
     
-    // Check current task tick
-    if(0 == --curTask->tick)
-        flag_reschedule=true;
+	if(NULL == curTask)
+		return;
+	
+	// Check current task tick
+	if(--curTask->ticks <= 0){
+		// Reduce Current Task Priority, when task time up
+		if(curTask->dynamic_priority > MIN_TASK_PRIORITY){
+			curTask->dynamic_priority--;
+		}
+		flag_reschedule=true;
+	}
+
+	// Increase Others task's wait_ticks and Schedule Priority
+	queueElement_t *elem = runq.head;
+	while(NULL != elem){
+		task_t *t = elem->task;
+		if((NULL != t) && (eTASK_ST_RUNNING != t->state)){
+			t->wait_ticks++;
+			
+			if(t->wait_ticks > TASK_WAIT_THRESHOLD){
+				if(t->dynamic_priority < MAX_TASK_PRIORITY)
+					t->dynamic_priority++;
+			}
+		}
+		
+		//my_printf("Task: id=%d, state=%d, pri=%d\n", t->id, t->state, t->dynamic_priority);
+		elem = elem->next;
+	}
+
     
 	return;
 }
