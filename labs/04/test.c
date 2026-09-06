@@ -74,3 +74,19 @@ void priviledge_task2()
         }
     }
 }
+
+void user_loop()
+{
+	my_printf("user_loop \n");
+	while(1)
+		;
+}
+
+void user_task()
+{
+	my_printf("user_task");
+	do_exec(user_loop);
+	while(1)
+		;
+	
+}

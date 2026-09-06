@@ -35,6 +35,12 @@ typedef enum{
 #define MIN_TASK_PRIORITY   eTASK_PRI_1
 #define MAX_TASK_PRIORITY   eTASK_PRI_8
 
+typedef struct utask{
+    
+    uint64_t sp;	//usr mode's stack ptr
+	uint64_t elr;	//usr mode's PC
+    
+}utask_t;
 
 typedef struct task{
     // save caller register x19~x28, fp, lr, sp
@@ -43,6 +49,8 @@ typedef struct task{
     uint64_t lr;
     uint64_t sp;
     
+	utask_t utask;
+	
     int id;
     eTask_state state;
     int base_priority;
@@ -88,4 +96,6 @@ int privilege_task_create(void(*func)(), int priority);
 task_t* get_current();
 void context_switch(struct task* next);
 void schedule();
+
+void do_exec(void(*func)());
 

@@ -21,3 +21,8 @@ switch_to:
   mov x2, lr
   br  x2
   //ret
+
+.global user_context
+user_context:
+    mov     sp, x0
+    br x1

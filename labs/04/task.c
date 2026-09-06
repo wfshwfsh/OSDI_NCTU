@@ -3,14 +3,18 @@
 #include "task.h"
 #include "test.h"
 
+#define STACK_SIZE 4096
+
 int pid=0;
 bool flag_reschedule=false;
 task_t task_pool[XNOF_PROCESS];
 queueElement_t taskElementPool[XNOF_PROCESS];
-uint64_t kstack_pool[XNOF_PROCESS][4096];
+uint64_t kstack_pool[XNOF_PROCESS][STACK_SIZE];
+uint64_t ustack_pool[XNOF_PROCESS][STACK_SIZE];
 runQueue_t runq;
 
 extern void switch_to(task_t *prev, task_t *next);
+extern void user_context(uint64_t sp, uint64_t func);
 
 int get_new_pid()
 {
@@ -175,14 +179,48 @@ void schedule(){
     context_switch(next->task);
 }
 
+task_t* get_current_utask(){
+    uint64_t addr_utask;
+    asm volatile("mrs %0, tpidr_el0" : "=r"(addr_utask));
+    return (utask_t *)(addr_utask);
+}
+
+void switch_to_user_mode(){
+    utask_t* utask = get_current_utask();
+    
+	uint64_t sp   = utask->sp;
+	uint64_t func = utask->elr;
+	
+	user_context(sp, func);
+}
+
 void do_exec(void(*func)())
 {
-	// SP_EL0：使用者模式堆疊指標的位址
+	task_t* task = get_current();
+	
+    uint64_t utask_addr = (uint64_t)&task->utask;
+    asm volatile("mov     x6, %0" : "=r"(utask_addr));
+    asm volatile("msr     tpidr_el0, x6");
+	
 	// ELR_EL1：使用者模式過程的程式計數器
+	task->utask.elr = (uint64_t) func;
+	
+	// SP_EL0：使用者模式堆疊指標的位址
+	task->utask.sp  = ustack_pool[task->id+1];
+	
 	// SPSR_EL1：CPU 使用者模式狀態
+    asm volatile("ldr x0, 0");
+    asm volatile("msr spsr_el1, x0");
+	
+	//tpidr_el0 ???
+	
+	// set elr_el1 to func: switch_to_user_mode()
+	asm volatile("ldr x2, =switch_to_user_mode");
+    asm volatile("msr     elr_el1, x2");
 	
 	
-	
+	//
+	asm volatile("eret");
 }
 
 
