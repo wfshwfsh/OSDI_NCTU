@@ -18,9 +18,8 @@ switch_to:
   ldr x9, [x1, 16 * 6]
   mov sp,  x9
   msr tpidr_el1, x1
-  mov x2, lr
+  msr spsr_el1, x3
   br  x2
-  //ret
 
 .global user_context
 user_context:

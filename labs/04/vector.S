@@ -55,6 +55,7 @@ _IRQ_handler:
   kernel_entry
   bl irq_handler
   kernel_exit
+  msr daifclr, #2
   eret
 
 _FIQ_handler:

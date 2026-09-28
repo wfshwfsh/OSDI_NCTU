@@ -36,7 +36,8 @@ void req2()
 void req3()
 {
 	//do_exec();
-	privilege_task_create(&user_task, eTASK_PRI_DEFAULT);
+	privilege_task_create(&loop_task, eTASK_PRI_DEFAULT);
+	privilege_task_create(&loop_task, 3);
 }
 
 int main(void)
@@ -56,19 +57,19 @@ int main(void)
     print_s("\033[2J\033[1;1H");
     //run_shell();
     
-	/* ============ Lab4 beg ============ */
-    
+    /* ============ Lab4 beg ============ */
     /* 111111111 REQ-1 111111111 */
-	//req1();
+    //req1();
     
     /* 222222222 REQ-2 222222222 */
-	//req2();
+    //req2();
     
-	/* 333333333 REQ-3 333333333 */
-	req3();
+    /* 333333333 REQ-3 333333333 */
+    req3();
 	
     //context_switch(&task_pool[tid_1]);
-	schedule();
+    schedule();
 	
-	/* ============ Lab4 end ============ */
+    /* ============ Lab4 end ============ */
+    return 0;
 }

@@ -38,7 +38,7 @@ typedef enum{
 typedef struct utask{
     
     uint64_t sp;	//usr mode's stack ptr
-	uint64_t elr;	//usr mode's PC
+    uint64_t elr;	//elr_el0: usr mode's PC
     
 }utask_t;
 
@@ -46,23 +46,21 @@ typedef struct task{
     // save caller register x19~x28, fp, lr, sp
     uint64_t context[10];
     uint64_t fp;
-    uint64_t lr;
+    uint64_t lr;   // br/blr return addr
     uint64_t sp;
-    
-	utask_t utask;
 	
-    int id;
-    eTask_state state;
+    uint64_t spsr; //spsr_el1: 
+    uint64_t elr;  //elr_el1: exception return addr(PC)
+    
+	utask_t  utask;
+	
+	int id;
+	eTask_state state;
     int base_priority;
 	int dynamic_priority;
     int ticks;
 	int wait_ticks;
-    
-    //int type; //??? user or kernel task
-    //int sp; //kernel stack pointer
-    
-    void (*func)();
-    
+	
 }task_t;
 
 typedef struct queueElement{

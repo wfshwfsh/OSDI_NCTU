@@ -13,7 +13,8 @@ uint64_t kstack_pool[XNOF_PROCESS][STACK_SIZE];
 uint64_t ustack_pool[XNOF_PROCESS][STACK_SIZE];
 runQueue_t runq;
 
-extern void switch_to(task_t *prev, task_t *next);
+extern void switch_to(task_t* prev, task_t* next,
+                      uint64_t nextfunc, uint64_t spsr);
 extern void user_context(uint64_t sp, uint64_t func);
 
 int get_new_pid()
@@ -115,20 +116,21 @@ void task_init()
 int privilege_task_create(void(*func)(), int priority)
 {
     task_t *pTask=NULL;
+	uint64_t spsr_el1;
     // allocate task struct and kernel stack
     int new_id = get_new_pid();
     
     pTask=&task_pool[new_id];
     pTask->id = new_id;
     
-    //sp 
-    pTask->sp = &kstack_pool[new_id][4096];
-    pTask->lr = func;
-    pTask->func = func;
+    pTask->sp = (uint64_t)&kstack_pool[new_id][4096];
+    pTask->elr = (uint64_t)func;
+    asm volatile("mrs %0, spsr_el1" : "=r"(spsr_el1));
+    pTask->spsr = spsr_el1;
     
     pTask->state = eTASK_ST_READY;
     pTask->base_priority = priority;
-	pTask->dynamic_priority = priority;
+    pTask->dynamic_priority = priority;
     pTask->ticks = 0;
     
     taskElementPool[new_id].task = pTask;
@@ -147,39 +149,39 @@ task_t* get_current(){
 
 void context_switch(struct task* next){
     task_t* prev = get_current();
-    switch_to(prev, next);
+	uint64_t next_func = next->elr;
+    switch_to(prev, next, next_func, next->spsr);
 	
-	// ç•¶å‰ä»»å‹™è¢«å–šé†’å›åˆ°é€™è£¡æ™‚ï¼Œé‡æ–°é–‹ä¸­æ–·
-    asm volatile("msr daifclr, #2");
+    // ·í«e¥ô°È³Q³ê¿ô¦^¨ì³o¸Ì®É¡A­«·s¶}¤¤Â_
+    //asm volatile("msr daifclr, #2");
 	
-    //next->func();
-	next->wait_ticks = 0;
+    next->wait_ticks = 0;
 }
 
 void schedule(){
     //my_printf("schedule Enter---\n");
-	task_t* cur = get_current();
+    task_t* cur = get_current();
 	
     // 1. Pick Next Task
     queueElement_t* next = taskQueue_pick_highest_ready(&runq);
     
-	// 2. handle orig task
-	cur->state = eTASK_ST_READY;
+    // 2. handle orig task
+    cur->state = eTASK_ST_READY;
 	
-	//my_printf("Task_ID: curr=%d, next=%d\n", cur->id, next->task->id);
-	my_printf("Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
-		, cur->id, cur->dynamic_priority
-		, next->task->id, next->task->dynamic_priority);
+    //my_printf("Task_ID: curr=%d, next=%d\n", cur->id, next->task->id);
+    my_printf("Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
+        , cur->id, cur->dynamic_priority
+        , next->task->id, next->task->dynamic_priority);
 	
     // 3. Switch 
-	//next->task->ticks = next->task->base_priority;
-	next->task->ticks = next->task->dynamic_priority;
-	next->task->wait_ticks = 0;
-	next->task->state = eTASK_ST_RUNNING;
+    //next->task->ticks = next->task->base_priority;
+    next->task->ticks = next->task->dynamic_priority;
+    next->task->wait_ticks = 0;
+    next->task->state = eTASK_ST_RUNNING;
     context_switch(next->task);
 }
 
-task_t* get_current_utask(){
+utask_t* get_current_utask(){
     uint64_t addr_utask;
     asm volatile("mrs %0, tpidr_el0" : "=r"(addr_utask));
     return (utask_t *)(addr_utask);
@@ -188,36 +190,36 @@ task_t* get_current_utask(){
 void switch_to_user_mode(){
     utask_t* utask = get_current_utask();
     
-	uint64_t sp   = utask->sp;
-	uint64_t func = utask->elr;
+    uint64_t sp   = utask->sp;
+    uint64_t func = utask->elr;
 	
-	user_context(sp, func);
+    user_context(sp, func);
 }
 
 void do_exec(void(*func)())
 {
 	task_t* task = get_current();
+    my_printf("current task id = %d\n", task->id);
 	
+    //tpidr_el0
     uint64_t utask_addr = (uint64_t)&task->utask;
     asm volatile("mov     x6, %0" : "=r"(utask_addr));
     asm volatile("msr     tpidr_el0, x6");
 	
-	// ELR_EL1ï¼šä½¿ç”¨è€…æ¨¡å¼éç¨‹çš„ç¨‹å¼è¨ˆæ•¸å™¨
+	// ELR_EL1¡G¨Ï¥ÎªÌ¼Ò¦¡¹Lµ{ªºµ{¦¡­p¼Æ¾¹
 	task->utask.elr = (uint64_t) func;
 	
-	// SP_EL0ï¼šä½¿ç”¨è€…æ¨¡å¼å †ç–ŠæŒ‡æ¨™çš„ä½å€
-	task->utask.sp  = ustack_pool[task->id+1];
+	// SP_EL0¡G¨Ï¥ÎªÌ¼Ò¦¡°ïÅ|«ü¼Ğªº¦ì§}
+	task->utask.sp  = (uint64_t)ustack_pool[task->id+1];
 	
-	// SPSR_EL1ï¼šCPU ä½¿ç”¨è€…æ¨¡å¼ç‹€æ…‹
-    asm volatile("ldr x0, 0");
-    asm volatile("msr spsr_el1, x0");
+	// SPSR_EL1¡GCPU ¨Ï¥ÎªÌ¼Ò¦¡ª¬ºA
+    //asm volatile("ldr x6, 0");
+    //asm volatile("msr spsr_el1, x6");
 	
-	//tpidr_el0 ???
-	
-	// set elr_el1 to func: switch_to_user_mode()
+	// set elr_el1 to PC address after eret (jump to EL0)
 	asm volatile("ldr x2, =switch_to_user_mode");
     asm volatile("msr     elr_el1, x2");
-	
+	asm volatile("bl      set_aux");
 	
 	//
 	asm volatile("eret");

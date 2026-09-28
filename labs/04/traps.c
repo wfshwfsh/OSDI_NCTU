@@ -49,6 +49,8 @@ void irq_handler()
         //my_printf("Local timer interrupt pending\n");
         local_timer_handler();
     }
+    
+    // Still in ISR, Do NOT schedule here! //
 }
 
 void fiq_handler()

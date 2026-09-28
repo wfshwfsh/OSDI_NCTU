@@ -5,4 +5,4 @@ void priviledge_task1();
 void priviledge_task2();
 
 void user_loop();
-void user_task();
+void loop_task();

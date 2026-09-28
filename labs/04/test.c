@@ -7,9 +7,9 @@ void Idle_task()
     my_printf(".\n");
     while(1){
         my_printf("Idle...\n");
-       // 確保 DAIF 的 IRQ bit 清除 (啟用 IRQ)
+       // 確�? DAIF ??IRQ bit 清除 (?�用 IRQ)
         asm volatile("msr daifclr, #2");
-        asm volatile("wfi"); // 等待 Interrupt 喚醒
+        asm volatile("wfi"); // 等�? Interrupt ?��?
 		for(int i=0;i<cnt;i++) ;
     }
 }
@@ -77,16 +77,14 @@ void priviledge_task2()
 
 void user_loop()
 {
-	my_printf("user_loop \n");
-	while(1)
-		;
+    my_printf("user_loop \n");
+    while(1)
+	;
 }
 
-void user_task()
+void loop_task()
 {
-	my_printf("user_task");
-	do_exec(user_loop);
-	while(1)
-		;
-	
+	my_printf("loop_task\n");
+    do_exec(user_loop);
 }
+

@@ -36,6 +36,7 @@ void core_timer_handler(){
     task_t* curTask = get_current();
     core_timer_cnt++;
     my_printf("core timer isr - %d\n", core_timer_cnt);
+    bool flag=false;
 	
     // Refresh timer
     asm volatile("mov x0, 0x1");
@@ -43,37 +44,49 @@ void core_timer_handler(){
     asm volatile("mul x0, x0, x1");
     asm volatile("msr cntp_tval_el0, x0");
     
-	if(NULL == curTask)
-		return;
-	
-	// Check current task tick
-	if(--curTask->ticks <= 0){
-		// Reduce Current Task Priority, when task time up
-		if(curTask->dynamic_priority > MIN_TASK_PRIORITY){
-			curTask->dynamic_priority--;
-		}
-		flag_reschedule=true;
-	}
-
-	// Increase Others task's wait_ticks and Schedule Priority
-	queueElement_t *elem = runq.head;
-	while(NULL != elem){
-		task_t *t = elem->task;
-		if((NULL != t) && (eTASK_ST_RUNNING != t->state)){
-			t->wait_ticks++;
-			
-			if(t->wait_ticks > TASK_WAIT_THRESHOLD){
-				if(t->dynamic_priority < MAX_TASK_PRIORITY)
-					t->dynamic_priority++;
-			}
-		}
-		
-		//my_printf("Task: id=%d, state=%d, pri=%d\n", t->id, t->state, t->dynamic_priority);
-		elem = elem->next;
-	}
-
-    
+    if(NULL == curTask)
 	return;
+	
+    // Check current task tick
+    if(--curTask->ticks <= 0){
+	// Reduce Current Task Priority, when task time up
+	if(curTask->dynamic_priority > MIN_TASK_PRIORITY){
+	    curTask->dynamic_priority--;
+	}
+	flag=true;
+    }
+
+    // Increase Others task's wait_ticks and Schedule Priority
+    queueElement_t *elem = runq.head;
+    while(NULL != elem){
+	task_t *t = elem->task;
+   	if((NULL != t) && (eTASK_ST_RUNNING != t->state)){
+		t->wait_ticks++;
+		
+		if(t->wait_ticks > TASK_WAIT_THRESHOLD){
+			if(t->dynamic_priority < MAX_TASK_PRIORITY)
+				t->dynamic_priority++;
+		}
+	}
+		
+	//my_printf("Task: id=%d, state=%d, pri=%d\n", t->id, t->state, t->dynamic_priority);
+	elem = elem->next;
+    }
+    
+    if(flag){
+        flag = false;
+        uint64_t elr, sp_el0, spsr_el1;
+        asm volatile("mrs %0, elr_el1" : "=r"(elr));
+        curTask->elr = elr;
+        asm volatile("mrs %0, sp_el0" : "=r"(sp_el0));
+        curTask->utask.sp = sp_el0;
+        asm volatile("mrs %0, spsr_el1" : "=r"(spsr_el1));
+        curTask->spsr = spsr_el1;
+        curTask->ticks = 0;
+        asm volatile("ldr x0, =schedule");
+        asm volatile("msr elr_el1, x0");
+    }
+    return;
 }
 
 void local_timer_init(){
