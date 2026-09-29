@@ -168,7 +168,6 @@ void schedule(){
     // 2. handle orig task
     cur->state = eTASK_ST_READY;
 	
-    //my_printf("Task_ID: curr=%d, next=%d\n", cur->id, next->task->id);
     my_printf("Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
         , cur->id, cur->dynamic_priority
         , next->task->id, next->task->dynamic_priority);
@@ -225,4 +224,48 @@ void do_exec(void(*func)())
 	asm volatile("eret");
 }
 
+void do_fork(uint64_t elr)
+{
+    task_t *cur = get_current();
+    task_t *new = NULL;
+	uint64_t sp_el0;
+    asm volatile("mrs %0, sp_el0" : "=r"(sp_el0));
+    
+    // allocate task struct and kernel stack
+    int new_id = get_new_pid();
+    
+    new=&task_pool[new_id];
+    new->id = new_id;
+    
+    //new->sp = (uint64_t)&kstack_pool[new_id][4096]; //???
+    memcpy(&kstack_pool[new_id - 1] + 1, &kstack_pool[task->id - 1] + 1,
+                   STACK_SIZE * sizeof(char));
+    
+    memcpy(&ustack_pool[new_id - 1] + 1, &ustack_pool[task->id - 1] + 1,
+                   STACK_SIZE * sizeof(char));
+    
+    new->elr = elr;
+    new->spsr = new->spsr_el1;
+    
+    new->utask.elr = cur->utask.elr;
+    new->utask.sp  = sp_el0; //???
+    
+    new->base_priority = cur->priority;
+    new->dynamic_priority = cur->priority;
+    
+    new->state = cur->state;
+    new->ticks = cur->ticks;
+    
+    taskElementPool[new_id].task = new;
+    
+    if(IDLE_TASK_ID != new_id)
+        taskQueue_push(&runq, &taskElementPool[new_id]);
+}
 
+void do_exit(uint64_t status)
+{
+    task_t *cur = get_current();
+    cur->state = eTASK_ST_ZOMBIE;
+    
+    my_printf("Exited with status code: %d\n", status);
+}

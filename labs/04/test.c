@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "task.h"
+#include "syscall.h"
 
 void Idle_task()
 {
@@ -75,9 +76,9 @@ void priviledge_task2()
     }
 }
 
-void user_loop()
+void loop_user()
 {
-    my_printf("user_loop \n");
+    my_printf("loop_user \n");
     while(1)
 	;
 }
@@ -85,6 +86,39 @@ void user_loop()
 void loop_task()
 {
 	my_printf("loop_task\n");
-    do_exec(user_loop);
+    do_exec(loop_user);
 }
 
+void echo_user()
+{
+	char ch[10]={};
+	uart_write("echo_user \n", 11);
+	uart_read(ch, 1);
+	my_printf("your input: ");
+	uart_write(ch, 1);
+	my_printf("\n");
+	while(1)
+		;
+}
+
+void exec_user() {
+    print_s("exec user (call loop user)\n");
+    exec(loop_user);
+    while (1)
+        ;
+}
+
+void fork_exit_user()
+{
+    print_s("fork exit user\n");
+    int pid=fork();
+    if(0 == pid){
+        my_printf("pid=%d\n", pid);
+        while(1)
+            ;
+    }else{
+        my_printf("pid=%d\n", pid);
+        exit(2);
+        my_printf("should not print here\n");
+    }
+}

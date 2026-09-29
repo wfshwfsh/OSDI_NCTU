@@ -44,9 +44,6 @@ _dummy_exc_handler:
 
 _SYNC_handler:
   kernel_entry
-  mov x0, #0
-  mrs x1, esr_el1
-  mrs x2, elr_el1
   bl sync_handler
   kernel_exit
   eret

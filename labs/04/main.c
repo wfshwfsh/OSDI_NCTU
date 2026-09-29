@@ -40,6 +40,19 @@ void req3()
 	privilege_task_create(&loop_task, 3);
 }
 
+void req4()
+{
+	//4-1
+	//privilege_task_create(&echo_user, eTASK_PRI_DEFAULT);
+	
+	//4-2
+	//privilege_task_create(exec_user, eTASK_PRI_DEFAULT);
+	//privilege_task_create(exec_user, 2);
+    
+    //4-3 & 4-4
+    privilege_task_create(fork_exit_user, eTASK_PRI_DEFAULT);
+}
+
 int main(void)
 {
     /* init --- beg --- */
@@ -65,7 +78,10 @@ int main(void)
     //req2();
     
     /* 333333333 REQ-3 333333333 */
-    req3();
+    //req3();
+	
+	/* 444444444 REQ-4 444444444 */
+    req4();
 	
     //context_switch(&task_pool[tid_1]);
     schedule();

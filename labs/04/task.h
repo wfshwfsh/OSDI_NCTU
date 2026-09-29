@@ -38,7 +38,7 @@ typedef enum{
 typedef struct utask{
     
     uint64_t sp;	//usr mode's stack ptr
-    uint64_t elr;	//elr_el0: usr mode's PC
+    uint64_t elr;	//elr_el0: usr mode's PC => Actually arm64 no this reg
     
 }utask_t;
 
@@ -96,4 +96,5 @@ void context_switch(struct task* next);
 void schedule();
 
 void do_exec(void(*func)());
-
+void do_fork(uint64_t elr);
+void do_exit(uint64_t status);

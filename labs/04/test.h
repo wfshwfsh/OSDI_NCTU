@@ -4,5 +4,8 @@ void echo2();
 void priviledge_task1();
 void priviledge_task2();
 
-void user_loop();
+void loop_user();
 void loop_task();
+void echo_user();
+void exec_user();
+void fork_exit_user();
