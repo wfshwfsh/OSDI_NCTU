@@ -35,24 +35,29 @@ typedef enum{
 #define MIN_TASK_PRIORITY   eTASK_PRI_1
 #define MAX_TASK_PRIORITY   eTASK_PRI_8
 
-typedef struct utask{
+typedef struct uContext{
     
     uint64_t sp;	//usr mode's stack ptr
-    uint64_t elr;	//elr_el0: usr mode's PC => Actually arm64 no this reg
+    uint64_t elr;	//elr_el1: exception return addr(PC)
+    uint64_t spsr;  //spsr_el1: 
     
-}utask_t;
+}uContext_t;
 
-typedef struct task{
+typedef struct kContext{
+    
     // save caller register x19~x28, fp, lr, sp
     uint64_t context[10];
-    uint64_t fp;
-    uint64_t lr;   // br/blr return addr
-    uint64_t sp;
-	
-    uint64_t spsr; //spsr_el1: 
-    uint64_t elr;  //elr_el1: exception return addr(PC)
     
-	utask_t  utask;
+    uint64_t fp; //x29:
+    uint64_t lr; //x30: br/blr return addr
+    uint64_t sp;
+    
+}kContext_t;
+
+typedef struct task{
+    
+    kContext_t kctx;
+    uContext_t uctx;
 	
 	int id;
 	eTask_state state;

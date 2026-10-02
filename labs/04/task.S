@@ -19,7 +19,8 @@ switch_to:
   mov sp,  x9
   msr tpidr_el1, x1
   msr spsr_el1, x3
-  br  x2
+  #br  x2
+  ret
 
 .global user_context
 user_context:

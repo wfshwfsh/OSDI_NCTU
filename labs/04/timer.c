@@ -77,11 +77,11 @@ void core_timer_handler(){
         flag = false;
         uint64_t elr, sp_el0, spsr_el1;
         asm volatile("mrs %0, elr_el1" : "=r"(elr));
-        curTask->elr = elr;
+        curTask->uctx.elr = elr;
         asm volatile("mrs %0, sp_el0" : "=r"(sp_el0));
-        curTask->utask.sp = sp_el0;
+        curTask->uctx.sp = sp_el0;
         asm volatile("mrs %0, spsr_el1" : "=r"(spsr_el1));
-        curTask->spsr = spsr_el1;
+        curTask->uctx.spsr = spsr_el1;
         curTask->ticks = 0;
         asm volatile("ldr x0, =schedule");
         asm volatile("msr elr_el1, x0");

@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdbool.h>
+#include "util.h"
 #include "task.h"
 #include "test.h"
 
@@ -123,10 +124,10 @@ int privilege_task_create(void(*func)(), int priority)
     pTask=&task_pool[new_id];
     pTask->id = new_id;
     
-    pTask->sp = (uint64_t)&kstack_pool[new_id][4096];
-    pTask->elr = (uint64_t)func;
+    pTask->kctx.sp = (uint64_t)&kstack_pool[new_id][4096];
+    pTask->kctx.lr = (uint64_t)func;
     asm volatile("mrs %0, spsr_el1" : "=r"(spsr_el1));
-    pTask->spsr = spsr_el1;
+    pTask->uctx.spsr = spsr_el1;
     
     pTask->state = eTASK_ST_READY;
     pTask->base_priority = priority;
@@ -149,8 +150,8 @@ task_t* get_current(){
 
 void context_switch(struct task* next){
     task_t* prev = get_current();
-	uint64_t next_func = next->elr;
-    switch_to(prev, next, next_func, next->spsr);
+	uint64_t next_func = next->kctx.lr;
+    switch_to(prev, next, next_func, next->uctx.spsr);
 	
     // 當前任務被喚醒回到這裡時，重新開中斷
     //asm volatile("msr daifclr, #2");
@@ -180,17 +181,17 @@ void schedule(){
     context_switch(next->task);
 }
 
-utask_t* get_current_utask(){
+uContext_t* get_current_utask(){
     uint64_t addr_utask;
     asm volatile("mrs %0, tpidr_el0" : "=r"(addr_utask));
-    return (utask_t *)(addr_utask);
+    return (uContext_t *)(addr_utask);
 }
 
 void switch_to_user_mode(){
-    utask_t* utask = get_current_utask();
+    uContext_t* uCtx = get_current_utask();
     
-    uint64_t sp   = utask->sp;
-    uint64_t func = utask->elr;
+    uint64_t sp   = uCtx->sp;
+    uint64_t func = uCtx->elr;
 	
     user_context(sp, func);
 }
@@ -201,15 +202,15 @@ void do_exec(void(*func)())
     my_printf("current task id = %d\n", task->id);
 	
     //tpidr_el0
-    uint64_t utask_addr = (uint64_t)&task->utask;
+    uint64_t utask_addr = (uint64_t)&task->uctx;
     asm volatile("mov     x6, %0" : "=r"(utask_addr));
     asm volatile("msr     tpidr_el0, x6");
 	
 	// ELR_EL1：使用者模式過程的程式計數器
-	task->utask.elr = (uint64_t) func;
+	task->uctx.elr = (uint64_t) func;
 	
 	// SP_EL0：使用者模式堆疊指標的位址
-	task->utask.sp  = (uint64_t)ustack_pool[task->id+1];
+	task->uctx.sp  = (uint64_t)ustack_pool[task->id+1];
 	
 	// SPSR_EL1：CPU 使用者模式狀態
     //asm volatile("ldr x6, 0");
@@ -238,20 +239,21 @@ void do_fork(uint64_t elr)
     new->id = new_id;
     
     //new->sp = (uint64_t)&kstack_pool[new_id][4096]; //???
-    memcpy(&kstack_pool[new_id - 1] + 1, &kstack_pool[task->id - 1] + 1,
+    memcpy(&kstack_pool[new_id - 1] + 1, &kstack_pool[cur->id - 1] + 1,
                    STACK_SIZE * sizeof(char));
     
-    memcpy(&ustack_pool[new_id - 1] + 1, &ustack_pool[task->id - 1] + 1,
+    memcpy(&ustack_pool[new_id - 1] + 1, &ustack_pool[cur->id - 1] + 1,
                    STACK_SIZE * sizeof(char));
     
-    new->elr = elr;
-    new->spsr = new->spsr_el1;
+    //new->elr = elr;
+    //new->spsr = new->spsr_el1;
     
-    new->utask.elr = cur->utask.elr;
-    new->utask.sp  = sp_el0; //???
+    new->uctx.elr  = cur->uctx.elr;
+    new->uctx.spsr = cur->uctx.spsr;
+    new->uctx.sp   = sp_el0; //???
     
-    new->base_priority = cur->priority;
-    new->dynamic_priority = cur->priority;
+    new->base_priority = cur->base_priority;
+    new->dynamic_priority = cur->dynamic_priority;
     
     new->state = cur->state;
     new->ticks = cur->ticks;

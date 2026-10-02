@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include "util.h"
 
 void memset(unsigned int *beg, unsigned int val, unsigned int len)
 {
@@ -30,4 +32,11 @@ int strlen(const char *s)
     }
     
     return i-1;
+}
+
+void *memcpy(void *dest, const void *src, size_t len) {
+    char *d = dest;
+    const char *s = src;
+    while (len--) *d++ = *s++;
+    return dest;
 }

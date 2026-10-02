@@ -22,10 +22,14 @@ void exec(void (*func)())
 	asm volatile("svc 0");
 }
 
-void fork()
+int fork()
 {
+    int pid;
 	asm volatile("mov x8, #3");	
 	asm volatile("svc 0");
+    
+    asm volatile("mov x0, %0" : "=r"(pid));
+    return pid;
 }
 
 void exit()

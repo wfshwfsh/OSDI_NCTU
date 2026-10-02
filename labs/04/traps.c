@@ -16,7 +16,7 @@ void dummy_exception_handler()
 	my_printf("dummy_exception_handler\n");
 }
 
-void sync_handler(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4, uint64_t x5, uint64_t x6, uint64_t x7)
+void sync_handler(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4, uint64_t x5)
 {
 	uint64_t iss, ec;
 	uint64_t syscall_no, esr, elr;

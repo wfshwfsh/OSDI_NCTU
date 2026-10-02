@@ -14,5 +14,5 @@ typedef enum{
 size_t uart_write(const char buf[], size_t size);
 size_t uart_read(const char buf[], size_t size);
 void exec(void (*func)());
-void fork();
+int fork();
 void exit();
