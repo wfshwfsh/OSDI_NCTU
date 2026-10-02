@@ -245,17 +245,19 @@ void do_fork(uint64_t elr)
     memcpy(&ustack_pool[new_id - 1] + 1, &ustack_pool[cur->id - 1] + 1,
                    STACK_SIZE * sizeof(char));
     
-    //new->elr = elr;
-    //new->spsr = new->spsr_el1;
+    new->kctx.lr = cur->kctx.lr;
+    new->kctx.sp = cur->kctx.sp;
     
     new->uctx.elr  = cur->uctx.elr;
     new->uctx.spsr = cur->uctx.spsr;
-    new->uctx.sp   = sp_el0; //???
+    //new->uctx.sp   = sp_el0; //???
+    new->uctx.sp   = (uint64_t)&ustack_pool[new_id + 1] 
+                        - ((uint64_t)&ustack_pool[cur->id + 1] - sp_el0);
     
     new->base_priority = cur->base_priority;
     new->dynamic_priority = cur->dynamic_priority;
     
-    new->state = cur->state;
+    new->state = eTASK_ST_READY;
     new->ticks = cur->ticks;
     
     taskElementPool[new_id].task = new;
