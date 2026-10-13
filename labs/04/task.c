@@ -96,16 +96,20 @@ queueElement_t* taskQueue_pick_highest_ready(runQueue_t *pRunq)
 	queueElement_t *curr = pRunq->head;
 	queueElement_t *bestTask = NULL;
 	int max_priority = -1;
-    int max_wait=0;
+    int max_wait=-1;
 
     while (curr != NULL) {
-        if (curr->task != NULL && curr->task->state == eTASK_ST_READY) {
+        if (curr->task != NULL && 
+            curr->task->state == eTASK_ST_READY && 
+            curr->task->id != IDLE_TASK_ID) {
+            
             if (curr->task->dynamic_priority > max_priority) {
                 max_priority = curr->task->dynamic_priority;
                 max_wait = curr->task->wait_ticks;
                 bestTask = curr;
             }else if(curr->task->dynamic_priority == max_priority){
                 if(curr->task->wait_ticks > max_wait){
+                    max_wait = curr->task->wait_ticks;
                     bestTask = curr;
                 }
             }
@@ -170,17 +174,21 @@ void schedule(){
     //my_printf("schedule Enter---\n");
     task_t* cur = get_current();
 	
-    // 1. Pick Next Task
-    queueElement_t* next = taskQueue_pick_highest_ready(&runq);
-    
-    // 2. handle orig task
+    // 1. update task state
     if(eTASK_ST_RUNNING == cur->state)
         cur->state = eTASK_ST_READY;
+    
+    // 2. Pick Next Task
+    queueElement_t* next = taskQueue_pick_highest_ready(&runq);
 	
-    my_printf("schedule Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
+    if(cur->id == next->task->id){
+        my_printf("Schedule: next task == curr task; do nothing\n");
+    }else{
+        my_printf("schedule Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
         , cur->id, cur->dynamic_priority
         , next->task->id, next->task->dynamic_priority);
-	
+    }
+    
     // 3. Switch 
     //next->task->ticks = next->task->base_priority;
     next->task->ticks = next->task->dynamic_priority;

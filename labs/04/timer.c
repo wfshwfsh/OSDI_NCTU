@@ -57,20 +57,20 @@ void core_timer_handler(){
     }
     
     // Increase Others task's wait_ticks and Schedule Priority
-    queueElement_t *elem = runq.head;
+    queueElement_t *elem = runq.head; 
     while(NULL != elem){
-	task_t *t = elem->task;
-   	if((NULL != t) && (eTASK_ST_RUNNING != t->state)){
-		t->wait_ticks++;
-		
-		if(t->wait_ticks > TASK_WAIT_THRESHOLD){
-			if(t->dynamic_priority < MAX_TASK_PRIORITY)
-				t->dynamic_priority++;
-		}
-	}
-		
-	//my_printf("Task: id=%d, state=%d, pri=%d\n", t->id, t->state, t->dynamic_priority);
-	elem = elem->next;
+        task_t *t = elem->task;
+        if((NULL != t) && (curTask != t) && (IDLE_TASK_ID != t->id) && (eTASK_ST_READY != t->state)){
+            t->wait_ticks++;
+            
+            if(t->wait_ticks > TASK_WAIT_THRESHOLD){
+                if(t->dynamic_priority < MAX_TASK_PRIORITY)
+                    t->dynamic_priority++;
+            }
+        }
+            
+        //my_printf("Task: id=%d, state=%d, pri=%d\n", t->id, t->state, t->dynamic_priority);
+        elem = elem->next;
     }
     
     if(flag){

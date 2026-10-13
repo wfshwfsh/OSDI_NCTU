@@ -119,7 +119,7 @@ static void fork_exit_user()
     }else{
         my_printf("parent pid=%d\n", pid);
         fork();
-        //exit(2);
+        exit(2);
         while(1);
         //my_printf("should not print here\n");
     }

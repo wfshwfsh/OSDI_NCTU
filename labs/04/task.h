@@ -20,8 +20,8 @@ typedef enum{
 
 typedef enum{
 	eTASK_PRI_0=0,
-	eTASK_PRI_IDLE=eTASK_PRI_0,
     eTASK_PRI_1,
+    eTASK_PRI_IDLE=eTASK_PRI_1,
     eTASK_PRI_2,
     eTASK_PRI_3,
     eTASK_PRI_4,
@@ -32,7 +32,7 @@ typedef enum{
     eTASK_PRI_8,
     eTASK_PRI_9
 }eTASK_PRI;
-#define MIN_TASK_PRIORITY   eTASK_PRI_1
+#define MIN_TASK_PRIORITY   eTASK_PRI_3
 #define MAX_TASK_PRIORITY   eTASK_PRI_8
 
 typedef struct uContext{
