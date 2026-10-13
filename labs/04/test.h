@@ -8,4 +8,4 @@ void loop_user();
 void loop_task();
 void echo_user();
 void exec_user();
-void fork_exit_user();
+void fork_exit_task();

@@ -49,13 +49,13 @@ void core_timer_handler(){
 	
     // Check current task tick
     if(--curTask->ticks <= 0){
-	// Reduce Current Task Priority, when task time up
-	if(curTask->dynamic_priority > MIN_TASK_PRIORITY){
-	    curTask->dynamic_priority--;
-	}
-	flag=true;
+        // Reduce Current Task Priority, when task time up
+        if(curTask->dynamic_priority > MIN_TASK_PRIORITY){
+            curTask->dynamic_priority--;
+        }
+        flag=true;
     }
-
+    
     // Increase Others task's wait_ticks and Schedule Priority
     queueElement_t *elem = runq.head;
     while(NULL != elem){

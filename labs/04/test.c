@@ -108,17 +108,25 @@ void exec_user() {
         ;
 }
 
-void fork_exit_user()
+static void fork_exit_user()
 {
     print_s("fork exit user\n");
     int pid=fork();
     if(0 == pid){
-        my_printf("pid=%d\n", pid);
+        my_printf("Child Pid=%d\n", pid);
         while(1)
             ;
     }else{
-        my_printf("pid=%d\n", pid);
-        exit(2);
-        my_printf("should not print here\n");
+        my_printf("parent pid=%d\n", pid);
+        fork();
+        //exit(2);
+        while(1);
+        //my_printf("should not print here\n");
     }
+}
+
+void fork_exit_task()
+{
+    print_s("fork_exit_task\n");
+    do_exec(fork_exit_user);
 }

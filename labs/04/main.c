@@ -50,7 +50,7 @@ void req4()
 	//privilege_task_create(exec_user, 2);
     
     //4-3 & 4-4
-    privilege_task_create(fork_exit_user, eTASK_PRI_DEFAULT);
+    privilege_task_create(fork_exit_task, eTASK_PRI_DEFAULT);
 }
 
 int main(void)

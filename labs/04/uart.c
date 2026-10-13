@@ -1,6 +1,6 @@
 #include "reg.h"
 #include "mailbox.h"
-
+#include "uart.h"
 
 /* Uart0: PL011-UART */
 void uart0_init() {
@@ -79,8 +79,11 @@ void uart1_init() {
     // 2. Set AUX_MU_CNTL_REG to 0. Disable transmitter and receiver during configuration.
     *AUX_MU_CNTL = 0;
     
-    // 3. Set AUX_MU_IER_REG to 0. Disable interrupt because currently you don’t need interrupt.
+    // 3. Set AUX_MU_IER_REG to 0.
     *AUX_MU_IER = 0;
+	
+	// Disable interrupt because currently you don’t need interrupt.
+	//*AUX_MU_IIR = 0xc6;
     
     // 4. Set AUX_MU_LCR_REG to 3. Set the data size to 8 bit.
     *AUX_MU_LCR = 3;
@@ -95,22 +98,24 @@ void uart1_init() {
     *AUX_MU_IIR = 6;
 
     /* map UART1 to GPIO pins */
-    //r = *GPFSEL1;
-    //r &= ~((7 << 12) | (7 << 15));  // gpio14, gpio15
-    //r |= (2 << 12) | (2 << 15);     // alt5
-    //*GPFSEL1 = r;
-    //*GPPUD = 0;  // enable pins 14 and 15
-    //r = 150;
-    //while (r--) {
-    //    asm volatile("nop");
-    //}
-    //*GPPUDCLK0 = (1 << 14) | (1 << 15);
-    //r = 150;
-    //while (r--) {
-    //    asm volatile("nop");
-    //}
-    //*GPPUDCLK0 = 0;    // flush GPIO setup
-
+    int r = *GPFSEL1;
+    r &= ~((7 << 12) | (7 << 15));  // gpio14, gpio15
+    r |= (2 << 12) | (2 << 15);     // alt5
+    *GPFSEL1 = r;
+    *GPPUD = 0;  // enable pins 14 and 15
+    r = 150;
+    while (r--) {
+        asm volatile("nop");
+    }
+    *GPPUDCLK0 = (1 << 14) | (1 << 15);
+    r = 150;
+    while (r--) {
+        asm volatile("nop");
+    }
+    *GPPUDCLK0 = 0;    // flush GPIO setup
+	
+	/* enable interrupt */
+	*AUX_MU_IER = IER_REG_VALUE;
 
     // 8. Set AUX_MU_CNTL_REG to 3. Enable the transmitter and receiver
     *AUX_MU_CNTL |= 3;

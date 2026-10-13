@@ -57,6 +57,7 @@ bool taskQueue_push(runQueue_t *pRunq, queueElement_t *pTaskElement)
         return false;
 	}
 	
+    pTaskElement->next = NULL;
 	if(NULL == pRunq->head){
 		pRunq->head = pTaskElement;
 		pRunq->tail = pTaskElement;
@@ -95,12 +96,18 @@ queueElement_t* taskQueue_pick_highest_ready(runQueue_t *pRunq)
 	queueElement_t *curr = pRunq->head;
 	queueElement_t *bestTask = NULL;
 	int max_priority = -1;
+    int max_wait=0;
 
     while (curr != NULL) {
         if (curr->task != NULL && curr->task->state == eTASK_ST_READY) {
             if (curr->task->dynamic_priority > max_priority) {
                 max_priority = curr->task->dynamic_priority;
+                max_wait = curr->task->wait_ticks;
                 bestTask = curr;
+            }else if(curr->task->dynamic_priority == max_priority){
+                if(curr->task->wait_ticks > max_wait){
+                    bestTask = curr;
+                }
             }
         }
         curr = curr->next;
@@ -167,9 +174,10 @@ void schedule(){
     queueElement_t* next = taskQueue_pick_highest_ready(&runq);
     
     // 2. handle orig task
-    cur->state = eTASK_ST_READY;
+    if(eTASK_ST_RUNNING == cur->state)
+        cur->state = eTASK_ST_READY;
 	
-    my_printf("Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
+    my_printf("schedule Task(id,pri): curr=(%d,%d), next=(%d,%d)\n"
         , cur->id, cur->dynamic_priority
         , next->task->id, next->task->dynamic_priority);
 	
@@ -203,8 +211,13 @@ void do_exec(void(*func)())
 	
     //tpidr_el0
     uint64_t utask_addr = (uint64_t)&task->uctx;
-    asm volatile("mov     x6, %0" : "=r"(utask_addr));
-    asm volatile("msr     tpidr_el0, x6");
+    //asm volatile("mov     x6, %0" : "=r"(utask_addr));
+    //asm volatile("msr     tpidr_el0, x6");
+    asm volatile(
+        "msr tpidr_el0, %0"
+        :
+        : "r"(&task->uctx)
+    );
 	
 	// ELR_EL1：使用者模式過程的程式計數器
 	task->uctx.elr = (uint64_t) func;
@@ -225,45 +238,77 @@ void do_exec(void(*func)())
 	asm volatile("eret");
 }
 
-void do_fork(uint64_t elr)
+void fork_child_entry(void)
+{
+    unsigned long current_el;
+
+    asm volatile(
+        "mrs %0, CurrentEL"
+        : "=r"(current_el)
+    );
+    
+    my_printf("fork_child_entry: EL:0x%x task=%d\n", current_el, get_current()->id);
+    task_t *task = get_current();
+
+    asm volatile(
+        "msr tpidr_el0, %0"
+        :
+        : "r"(&task->uctx)
+    );
+
+    //switch_to_user_mode();
+    asm volatile("ldr x2, =switch_to_user_mode");
+    asm volatile("msr     elr_el1, x2");
+    asm volatile("eret");
+
+    while (1)
+        ;
+}
+
+extern void child_return_from_fork(void);
+
+int do_fork(uint64_t elr, uint64_t *frame)
 {
     task_t *cur = get_current();
-    task_t *new = NULL;
-	uint64_t sp_el0;
-    asm volatile("mrs %0, sp_el0" : "=r"(sp_el0));
-    
-    // allocate task struct and kernel stack
     int new_id = get_new_pid();
-    
-    new=&task_pool[new_id];
+    task_t *new = &task_pool[new_id];
     new->id = new_id;
-    
-    //new->sp = (uint64_t)&kstack_pool[new_id][4096]; //???
-    memcpy(&kstack_pool[new_id - 1] + 1, &kstack_pool[cur->id - 1] + 1,
-                   STACK_SIZE * sizeof(char));
-    
-    memcpy(&ustack_pool[new_id - 1] + 1, &ustack_pool[cur->id - 1] + 1,
-                   STACK_SIZE * sizeof(char));
-    
-    new->kctx.lr = cur->kctx.lr;
-    new->kctx.sp = cur->kctx.sp;
-    
-    new->uctx.elr  = cur->uctx.elr;
+
+    // 複製 kernel stack 與 user stack
+    memcpy(&kstack_pool[new_id], &kstack_pool[cur->id], sizeof(kstack_pool[0]));
+    memcpy(&ustack_pool[new_id], &ustack_pool[cur->id], sizeof(ustack_pool[0]));
+
+    // 計算 frame 位於哪一個 stack pool，求出 child 對應的 child_frame
+    uint64_t *child_frame;
+    if ((uint64_t)frame >= (uint64_t)&ustack_pool[cur->id][0] &&
+        (uint64_t)frame < (uint64_t)&ustack_pool[cur->id][STACK_SIZE]) {
+        uint64_t offset = (uint64_t)frame - (uint64_t)&ustack_pool[cur->id][0];
+        child_frame = (uint64_t *)((uint64_t)&ustack_pool[new_id][0] + offset);
+    } else {
+        uint64_t offset = (uint64_t)frame - (uint64_t)&kstack_pool[cur->id][0];
+        child_frame = (uint64_t *)((uint64_t)&kstack_pool[new_id][0] + offset);
+    }
+
+    // 子行程的 fork 回傳值 (x0) 必須為 0
+    child_frame[60] = 0;
+
+    // 設定子行程返回時的進入點與堆疊位置
+    new->kctx.lr = (uint64_t)child_return_from_fork;
+    new->kctx.sp = (uint64_t)child_frame; // 讓 switch_to 將 SP 切到 child_frame
+
+    // 儲存使用者的 elr 與 spsr 供 child_return_from_fork 使用
+    new->uctx.elr  = elr;
     new->uctx.spsr = cur->uctx.spsr;
-    //new->uctx.sp   = sp_el0; //???
-    new->uctx.sp   = (uint64_t)&ustack_pool[new_id + 1] 
-                        - ((uint64_t)&ustack_pool[cur->id + 1] - sp_el0);
-    
+
     new->base_priority = cur->base_priority;
     new->dynamic_priority = cur->dynamic_priority;
-    
     new->state = eTASK_ST_READY;
     new->ticks = cur->ticks;
-    
+
     taskElementPool[new_id].task = new;
-    
-    if(IDLE_TASK_ID != new_id)
-        taskQueue_push(&runq, &taskElementPool[new_id]);
+    taskQueue_push(&runq, &taskElementPool[new_id]);
+
+    return new_id;
 }
 
 void do_exit(uint64_t status)

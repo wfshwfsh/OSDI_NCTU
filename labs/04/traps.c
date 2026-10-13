@@ -16,14 +16,21 @@ void dummy_exception_handler()
 	my_printf("dummy_exception_handler\n");
 }
 
-void sync_handler(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4, uint64_t x5)
+void sync_handler(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x4, uint64_t x5, uint64_t *frame)
 {
 	uint64_t iss, ec;
-	uint64_t syscall_no, esr, elr;
-    asm volatile("mov %0, x8" : "=r"(syscall_no));
+	uint64_t syscall_no, esr, elr, resume_elr;
+    uint64_t sp;
+	int fork_id;
+
+    asm volatile("mov %0, sp" : "=r"(sp));
+    //asm volatile("mov %0, x8" : "=r"(syscall_no));
+    syscall_no = frame[44];
 	asm volatile("mrs %0, esr_el1" : "=r"(esr));
 	asm volatile("mrs %0, elr_el1" : "=r"(elr));
-	
+	print_s("sync SP=0x");
+	print_x(sp);
+	print_s("\n");
 	iss = esr & ((1 << 24) -1);
 	ec = esr >> 26;
 	
@@ -43,9 +50,12 @@ void sync_handler(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3, uint64_t x
 				do_exec((void (*)())x0);
 				break;
 			case eSYSCALL_FORK:
-                do_fork(elr);
+                fork_id = do_fork(elr, frame);
+				frame[60] = fork_id;
 				break;
 			case eSYSCALL_EXIT:
+				my_printf("EXIT syscall: task=%d, x0=%d, elr=0x%x\n",
+					get_current()->id, (int)x0, elr);
                 do_exit(x0);
                 asm volatile("ldr x0, =schedule");
                 asm volatile("msr elr_el1, x0");
@@ -71,6 +81,14 @@ void irq_handler()
     unsigned int core0_irq_src = *CORE0_IRQ_SRC;
 	//my_printf("irq_handler = 0x%x\n", core0_irq_src);
     
+	if(core0_irq_src & AUX_IRQ){
+		my_printf("irq\n");
+		if(*AUX_MU_LSR & (1<<0)){
+			//TBD
+			;
+		}
+	}
+	
     if(core0_irq_src & (1 << 1)){
         //my_printf("Generic timer interrupt pending\n");
         core_timer_handler();

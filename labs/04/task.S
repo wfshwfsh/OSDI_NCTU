@@ -25,4 +25,5 @@ switch_to:
 .global user_context
 user_context:
     mov     sp, x0
+    mov     x0, #0
     br x1

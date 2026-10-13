@@ -65,6 +65,8 @@ typedef struct task{
 	int dynamic_priority;
     int ticks;
 	int wait_ticks;
+    
+    uint64_t fork_id;
 	
 }task_t;
 
@@ -101,5 +103,5 @@ void context_switch(struct task* next);
 void schedule();
 
 void do_exec(void(*func)());
-void do_fork(uint64_t elr);
+int  do_fork(uint64_t elr, uint64_t *frame);
 void do_exit(uint64_t status);

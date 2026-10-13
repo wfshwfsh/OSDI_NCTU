@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include "syscall.h"
+#include "uart.h"
 #include "task.h"
 
 size_t uart_write(const char buf[], size_t size)
@@ -24,12 +25,17 @@ void exec(void (*func)())
 
 int fork()
 {
-    int pid;
-	asm volatile("mov x8, #3");	
-	asm volatile("svc 0");
-    
-    asm volatile("mov x0, %0" : "=r"(pid));
-    return pid;
+    register long x0 asm("x0");
+
+    asm volatile(
+        "mov x8, #3\n\t"
+        "svc #0\n\t"
+        : "=r"(x0)
+        :
+        : "x8", "memory"
+    );
+
+    return (int)x0;
 }
 
 void exit()
